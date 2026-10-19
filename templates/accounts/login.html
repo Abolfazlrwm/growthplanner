@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}ورود{% endblock %}
+
+{% block content %}
+  <div class="auth">
+    <div class="auth-head">
+      <svg class="mark i" aria-hidden="true" style="width:3.4rem;height:3.4rem"><use href="#i-logo"/></svg>
+      <h1>خوش برگشتی</h1>
+      <p class="page-sub">برای ادامه وارد حسابت شو.</p>
+    </div>
+    <div class="card auth-card">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% include "includes/form_fields.html" %}
+        <input type="hidden" name="next" value="{{ next }}">
+        <button type="submit" class="btn btn-primary btn-block btn-lg">ورود</button>
+      </form>
+      <p class="auth-foot" style="margin-top:.9rem"><a href="{% url 'accounts:password_reset' %}">رمز عبور را فراموش کرده‌ای؟</a></p>
+    </div>
+    <p class="auth-foot">حساب نداری؟ <a href="{% url 'accounts:register' %}">ثبت‌نام</a></p>
+  </div>
+{% endblock %}

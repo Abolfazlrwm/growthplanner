@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% load jalali_tags %}
+
+{% block title %}{{ goal.title }}{% endblock %}
+{% block main_class %}container container-dash{% endblock %}
+
+{% block content %}
+  {% if celebrate %}<div data-celebrate hidden></div>{% endif %}
+
+  <nav class="crumbs" aria-label="مسیر صفحه"><a href="{% url 'goals:list' %}"><svg class="i i-sm" aria-hidden="true"><use href="#i-chevron-right"/></svg>اهداف</a></nav>
+
+  <section class="goal-hero glow" aria-labelledby="goal-title">
+    <div class="goal-hero-main">
+      <div class="row row-wrap" style="gap:.4rem">
+        {% if goal.status == "completed" %}<span class="chip chip-ok"><svg class="i" aria-hidden="true"><use href="#i-trophy"/></svg>تکمیل‌شده</span>
+        {% elif goal.status == "abandoned" %}<span class="chip">رهاشده</span>
+        {% else %}<span class="chip chip-primary"><svg class="i" aria-hidden="true"><use href="#i-goals"/></svg>فعال</span>{% endif %}
+        <span class="chip chip-accent"><svg class="i" aria-hidden="true"><use href="#i-flag"/></svg>{{ goal.deadline|jalali:"withweekday" }}</span>
+      </div>
+      <h1 id="goal-title" class="goal-title">{{ goal.title }}</h1>
+      {% if goal.description %}<p class="muted goal-desc">{{ goal.description|linebreaksbr }}</p>{% endif %}
+
+      <p class="goal-deadline{% if overdue %} is-late{% endif %}" role="status">
+        {% if goal.status != "active" %}
+          {% if goal.status == "completed" %}این هدف را به پایان رساندی.{% else %}این هدف رها شده است.{% endif %}
+        {% elif days_left > 1 %}{{ days_left|fa }} روز تا ددلاین مانده.
+        {% elif days_left == 1 %}فردا ددلاین است.
+        {% elif days_left == 0 %}امروز ددلاین است.
+        {% elif open_count %}{{ days_over|fa }} روز از ددلاین گذشته؛ می‌توانی ددلاین را عوض کنی یا هدف را ببندی.
+        {% else %}{{ days_over|fa }} روز از ددلاین گذشته.{% endif %}
+        {% if pace_count %}<br><span class="muted">{% if pace_unit == "روز" %}برای رسیدن به موقع، روزی حدود {{ pace_count|fa }} تسک باید تمام شود.{% else %}برای رسیدن به موقع، هفته‌ای حدود {{ pace_count|fa }} تسک باید تمام شود.{% endif %}</span>{% endif %}
+      </p>
+
+      <div class="goal-actions">
+        {% if can_complete %}
+          <form method="post" action="{% url 'goals:complete' goal.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-accent"><svg class="i" aria-hidden="true"><use href="#i-trophy"/></svg>تکمیل هدف</button>
+          </form>
+        {% endif %}
+        <a class="btn btn-ghost" href="{% url 'goals:edit' goal.pk %}"><svg class="i" aria-hidden="true"><use href="#i-edit"/></svg>ویرایش</a>
+        <a class="btn btn-ghost" href="{% url 'goals:delete' goal.pk %}" style="color:var(--danger)"><svg class="i" aria-hidden="true"><use href="#i-trash"/></svg>حذف</a>
+      </div>
+    </div>
+
+    <div class="goal-ring" role="img" aria-label="{{ percent|fa }} درصد پیشرفت">
+      <div class="ring{% if percent == 100 %} is-complete{% endif %}" style="--p: {{ percent }}">
+        <svg viewBox="0 0 100 100" focusable="false" aria-hidden="true"><circle class="track" cx="50" cy="50" r="42" pathLength="100"/><circle class="bar" cx="50" cy="50" r="42" pathLength="100"/></svg>
+        <div class="ring-label" aria-hidden="true"><div><strong><span data-countup="{{ percent }}">{{ percent|fa }}</span>٪</strong><span>{{ done_count|fa }} از {{ total|fa }}</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="stat-grid mt-4">
+    <div class="card stat tilt"><div class="stat-top"><svg class="i" aria-hidden="true"><use href="#i-check-circle"/></svg>انجام‌شده</div><div class="stat-value"><span data-countup="{{ done_count }}">{{ done_count|fa }}</span></div></div>
+    <div class="card stat tilt"><div class="stat-top"><svg class="i accent" aria-hidden="true"><use href="#i-play"/></svg>باقی‌مانده</div><div class="stat-value"><span data-countup="{{ open_count }}">{{ open_count|fa }}</span></div></div>
+    <div class="card stat tilt"><div class="stat-top"><svg class="i" aria-hidden="true"><use href="#i-x-circle"/></svg>ناموفق</div><div class="stat-value"><span data-countup="{{ failed_count }}">{{ failed_count|fa }}</span></div></div>
+    <div class="card stat tilt"><div class="stat-top"><svg class="i" aria-hidden="true"><use href="#i-tasks"/></svg>کل تسک‌ها</div><div class="stat-value"><span data-countup="{{ total }}">{{ total|fa }}</span></div></div>
+  </div>
+
+  <section id="milestones" class="card mt-4" aria-labelledby="milestones-h">
+    <div class="row between"><h2 id="milestones-h" class="card-title">{% if ui_lang == "en" %}Milestones{% else %}نقاط عطف{% endif %}</h2><span class="chip">{{ milestones|length }}</span></div>
+    <p class="muted text-sm mt-2">{% if ui_lang == "en" %}Small checkpoints keep this goal visible between its tasks and deadline.{% else %}نقاط عطف، قدم‌های مهم را بین تسک‌ها و ددلاین هدف روشن نگه می‌دارند.{% endif %}</p>
+    <ul class="task-list mt-3">
+      {% for milestone in milestones %}
+        <li class="task">
+          <form method="post" action="{% url 'goals:milestone_toggle' goal.pk milestone.pk %}" class="row grow" style="gap:.6rem">{% csrf_token %}<button type="submit" class="check" aria-pressed="{{ milestone.is_completed|yesno:'true,false' }}" aria-label="{% if ui_lang == 'en' %}Toggle milestone{% else %}تغییر وضعیت نقطه عطف{% endif %}">{% if milestone.is_completed %}<svg class="i" aria-hidden="true"><use href="#i-check"/></svg>{% endif %}</button><span class="task-title{% if milestone.is_completed %} done{% endif %}">{{ milestone.title }}</span>{% if milestone.due_date %}<span class="chip ltr">{% if ui_lang == "en" %}{{ milestone.due_date|date:"M j" }}{% else %}{{ milestone.due_date|jalali }}{% endif %}</span>{% endif %}</form>
+          <form method="post" action="{% url 'goals:milestone_delete' goal.pk milestone.pk %}">{% csrf_token %}<button class="icon-btn" type="submit" aria-label="{% if ui_lang == 'en' %}Delete milestone{% else %}حذف نقطه عطف{% endif %}"><svg class="i" aria-hidden="true"><use href="#i-trash"/></svg></button></form>
+        </li>
+      {% empty %}
+        <li class="muted">{% if ui_lang == "en" %}Add the first checkpoint for this goal.{% else %}اولین نقطه عطف این هدف را اضافه کن.{% endif %}</li>
+      {% endfor %}
+    </ul>
+    <form class="quick-add-main mt-3" method="post" action="{% url 'goals:milestone_add' goal.pk %}">{% csrf_token %}<div class="grow"><label class="sr-only" for="{{ milestone_form.title.id_for_label }}">{% if ui_lang == "en" %}Milestone title{% else %}عنوان نقطه عطف{% endif %}</label>{{ milestone_form.title }}</div><div><label class="sr-only" for="{{ milestone_form.due_date.id_for_label }}">{% if ui_lang == "en" %}Due date{% else %}تاریخ هدف{% endif %}</label>{{ milestone_form.due_date }}</div><button class="btn btn-ghost" type="submit">{% if ui_lang == "en" %}Add{% else %}افزودن{% endif %}</button></form>
+  </section>
+
+  <section class="card mt-4" aria-labelledby="gweeks-h">
+    <h2 id="gweeks-h" class="card-title">تسک‌های انجام‌شده در ۸ هفته‌ی اخیر</h2>
+    {% if has_week_data %}
+      <div class="bars" role="img" aria-label="نمودار ستونی تسک‌های انجام‌شده‌ی این هدف در هشت هفته‌ی اخیر">
+        {% for w in weeks %}
+          <div class="bar-col">
+            <div class="bar-track"><div class="bar-fill{% if w.count == 0 %} is-empty{% endif %}" style="height: {% if w.count == 0 %}4{% else %}{{ w.percent }}{% endif %}%; animation-delay: {{ forloop.counter0 }}00ms"></div></div>
+            <span class="bar-label">{{ w.count|fa }}</span>
+            <span class="bar-val">{{ w.label }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">
+        {% include "includes/illus.html" with kind="goals" %}
+        <h3>هنوز تسکی از این هدف تمام نشده</h3>
+        <p>با اولین تسکِ انجام‌شده، روند هفتگی اینجا ساخته می‌شود.</p>
+      </div>
+    {% endif %}
+  </section>
+
+  <div class="section-title"><h2><svg class="i" aria-hidden="true"><use href="#i-tasks"/></svg>تسک‌های باز</h2></div>
+
+  <form class="card quick-add" hx-post="{% url 'tasks:create' %}" hx-target="#goal-new-list" hx-swap="beforeend"
+        hx-on::after-request="if(event.detail.successful){this.reset();}" aria-label="افزودن تسک برای این هدف">
+    {% csrf_token %}
+    <input type="hidden" name="goal" value="{{ goal.id }}">
+    <input type="hidden" name="date" value="{{ today|date:'Y-m-d' }}">
+    <input type="hidden" name="priority" value="medium">
+    <div class="quick-add-main">
+      <div class="grow">
+        <label for="goal-new-title" class="sr-only">عنوان تسک جدید برای این هدف</label>
+        <input type="text" id="goal-new-title" name="title" class="field" maxlength="200" placeholder="یک تسک برای امروز، مربوط به این هدف…" required>
+      </div>
+      <button type="submit" class="btn btn-primary"><svg class="i" aria-hidden="true"><use href="#i-plus"/></svg><span>افزودن</span></button>
+    </div>
+  </form>
+
+  <ul id="goal-new-list" class="task-list mb-4"></ul>
+
+  {% for group in groups %}
+    <section class="goal-day" aria-label="{{ group.date|jalali:'withweekday' }}">
+      <h3 class="goal-day-title">
+        {{ group.date|jalali:"withweekday" }}
+        {% if group.date == today %}<span class="chip chip-primary">امروز</span>{% elif group.date < today %}<span class="chip chip-danger">گذشته</span>{% endif %}
+      </h3>
+      <ul class="task-list" data-task-list data-date="{{ group.date|date:'Y-m-d' }}">
+        {% for task in group.tasks %}{% include "tasks/_task_row.html" %}{% endfor %}
+      </ul>
+    </section>
+  {% empty %}
+    <div class="empty empty-card">
+      {% include "includes/illus.html" with kind="done" %}
+      <h3>تسک بازی نمانده</h3>
+      <p>{% if total %}همه‌ی تسک‌های این هدف تمام شده‌اند؛ اگر کار تمام است، هدف را ببند.{% else %}هنوز تسکی به این هدف وصل نشده. از فرم بالا یکی بساز.{% endif %}</p>
+    </div>
+  {% endfor %}
+
+  {% if habits %}
+    <section class="card mt-4" aria-labelledby="ghabits-h">
+      <h2 id="ghabits-h" class="card-title">عادت‌های وصل‌شده</h2>
+      <div class="row row-wrap mt-2" style="gap:.4rem">
+        {% for habit in habits %}<a class="chip chip-primary" href="{% url 'habits:detail' habit.pk %}" style="text-decoration:none"><svg class="i" aria-hidden="true"><use href="#i-habits"/></svg>{{ habit.title }}</a>{% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+  {% if recent_done %}
+    <details class="card mt-4 done-details">
+      <summary><span class="card-title">آخرین تسک‌های انجام‌شده</span><span class="chip chip-ok">{{ done_count|fa }}</span></summary>
+      <ul class="done-list mt-2">
+        {% for task in recent_done %}
+          <li><svg class="i i-sm" aria-hidden="true" style="color:var(--ok)"><use href="#i-check"/></svg><span class="grow">{{ task.title }}</span><span class="text-xs muted nowrap">{{ task.date|jalali }}</span></li>
+        {% endfor %}
+      </ul>
+    </details>
+  {% endif %}
+{% endblock %}

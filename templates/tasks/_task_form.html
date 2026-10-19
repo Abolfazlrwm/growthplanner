@@ -1,0 +1,27 @@
+<form id="task-form" hx-post="{% url 'tasks:create' %}" hx-target="#task-list" hx-swap="beforeend"
+      hx-on::after-request="if(event.detail.successful){this.reset();var t=this.querySelector('input[name=title]');if(t){t.focus();}}"
+      class="card quick-add" aria-label="افزودن تسک">
+  {% csrf_token %}
+  <input type="hidden" name="date" value="{{ date|date:'Y-m-d' }}">
+  <div class="quick-add-main">
+    <div class="grow">
+      <label for="{{ form.title.id_for_label }}" class="sr-only">عنوان تسک</label>
+      {{ form.title }}
+      {% for error in form.title.errors %}<p class="field-error"><svg class="i i-sm" aria-hidden="true"><use href="#i-alert"/></svg>{{ error }}</p>{% endfor %}
+    </div>
+    <button type="submit" class="btn btn-primary"><svg class="i" aria-hidden="true"><use href="#i-plus"/></svg><span>افزودن</span></button>
+  </div>
+  <details{% if form.errors and not form.title.errors %} open{% endif %}>
+    <summary><svg class="i i-sm" aria-hidden="true"><use href="#i-chevron-down"/></svg>جزئیات بیشتر (هدف، اولویت، ساعت)</summary>
+    <div class="quick-add-extra">
+      <div class="span-2"><label class="field-label text-sm" for="{{ form.goal.id_for_label }}">{{ form.goal.label }}</label>{{ form.goal }}</div>
+      <div><label class="field-label text-sm" for="{{ form.priority.id_for_label }}">{{ form.priority.label }}</label>{{ form.priority }}</div>
+      <div><label class="field-label text-sm" for="{{ form.start_time.id_for_label }}">{{ form.start_time.label }}</label>{{ form.start_time }}</div>
+      <div><label class="field-label text-sm" for="{{ form.end_time.id_for_label }}">{{ form.end_time.label }}</label>{{ form.end_time }}</div>
+    </div>
+    {% for field in form %}{% if field.name != "title" and field.name != "date" and field.errors %}
+      {% for error in field.errors %}<p class="field-error mt-2"><svg class="i i-sm" aria-hidden="true"><use href="#i-alert"/></svg>{{ error }}</p>{% endfor %}
+    {% endif %}{% endfor %}
+  </details>
+  {% for e in form.non_field_errors %}<p class="field-error mt-2"><svg class="i i-sm" aria-hidden="true"><use href="#i-alert"/></svg>{{ e }}</p>{% endfor %}
+</form>

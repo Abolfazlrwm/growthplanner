@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load jalali_tags %}
+
+{% block title %}تقویم{% endblock %}
+
+{% block content %}
+  <div class="cal-nav">
+    <a href="{% url 'calendar_view:month' prev_year prev_month %}" class="btn btn-ghost btn-sm" aria-label="ماه قبل"><svg class="i i-sm" aria-hidden="true"><use href="#i-chevron-right"/></svg><span class="only-desktop">قبلی</span></a>
+    <h1>{{ month_name }} {{ year_fa }}</h1>
+    <a href="{% url 'calendar_view:month' next_year next_month %}" class="btn btn-ghost btn-sm" aria-label="ماه بعد"><span class="only-desktop">بعدی</span><svg class="i i-sm" aria-hidden="true"><use href="#i-chevron-left"/></svg></a>
+  </div>
+  {% if not is_current_month %}
+    <div class="text-center mb-3"><a href="{% url 'calendar_view:month' %}" class="chip chip-primary" style="padding:.2rem .9rem;text-decoration:none">برگشت به ماه جاری</a></div>
+  {% endif %}
+
+  <div class="cal" aria-hidden="false">
+    {% for name, short, weekend in weekdays %}
+      <div class="cal-dow{% if weekend %} fri{% endif %}"><span class="short" aria-hidden="true">{{ short }}</span><span class="full">{{ name }}</span></div>
+    {% endfor %}
+    {% for week in grid %}
+      {% for day in week %}
+        <a href="{% url 'tasks:list' %}?date={{ day.gregorian|date:'Y-m-d' }}"
+           class="cal-day{% if not day.in_month %} is-out{% endif %}{% if day.is_holiday %} is-holiday{% endif %}{% if day.gregorian == today_gregorian %} is-today{% endif %}"
+           aria-label="{{ day.gregorian|jalali:'withweekday' }}{% if day.gregorian == today_gregorian %} (امروز){% endif %}"{% if day.gregorian == today_gregorian %} aria-current="date"{% endif %}>
+          <span aria-hidden="true">{{ day.jalali_day }}</span>
+          <span class="dots" aria-hidden="true">{% for dot in day.dots %}<span class="dot {{ dot }}"></span>{% endfor %}</span>
+        </a>
+      {% endfor %}
+    {% endfor %}
+  </div>
+
+  <div class="legend" aria-label="راهنمای نقطه‌ها">
+    <span><i class="dot dot-done"></i>انجام‌شده</span>
+    <span><i class="dot dot-in_progress"></i>در جریان</span>
+    <span><i class="dot dot-todo"></i>انجام‌نشده</span>
+    <span><i class="dot dot-moved"></i>منتقل‌شده</span>
+    <span><i class="dot dot-failed"></i>نشد</span>
+  </div>
+{% endblock %}

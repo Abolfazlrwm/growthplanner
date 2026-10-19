@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load jalali_tags %}
+
+{% block title %}تسک‌ها{% endblock %}
+
+{% block content %}
+  <div class="page-head">
+    <div>
+      <h1>{{ date|jalali:"withweekday" }}</h1>
+      {% if is_today %}<p class="page-sub">امروز</p>{% endif %}
+    </div>
+    <a class="btn btn-ghost btn-sm" href="{% url 'calendar_view:timeline' date|date:'Y-m-d' %}"><svg class="i i-sm" aria-hidden="true"><use href="#i-clock"/></svg>تایم‌بندی</a>
+  </div>
+
+  <nav class="row between mb-4" aria-label="جابه‌جایی بین روزها">
+    <a class="btn btn-ghost btn-sm" href="?date={{ date|add_days:-1|date:'Y-m-d' }}"><svg class="i i-sm" aria-hidden="true"><use href="#i-chevron-right"/></svg>روز قبل</a>
+    {% if not is_today %}<a class="btn btn-sm" style="--_bg:var(--primary-soft);--_fg:var(--primary-text);--_hv:var(--line)" href="{% url 'tasks:list' %}">برو به امروز</a>{% endif %}
+    <a class="btn btn-ghost btn-sm" href="?date={{ date|add_days:1|date:'Y-m-d' }}">روز بعد<svg class="i i-sm" aria-hidden="true"><use href="#i-chevron-left"/></svg></a>
+  </nav>
+
+  <div id="task-form-wrap">{% include "tasks/_task_form.html" %}</div>
+
+  <ul id="task-list" class="task-list" data-task-list data-date="{{ date|date:'Y-m-d' }}">
+    {% for task in tasks %}{% include "tasks/_task_row.html" %}{% endfor %}
+    <li class="empty-state">
+      <div class="empty empty-card">
+        {% include "includes/illus.html" with kind="tasks" %}
+        <h3>تسکی برای این روز نیست</h3>
+        <p>{% if is_today %}روز خالی هم یک فرصت است؛ اولین کار را بالا اضافه کن.{% else %}برای این روز چیزی ثبت نشده. اگر می‌خواهی، همین حالا اضافه‌اش کن.{% endif %}</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="mt-6">
+    {% include "journal/_note_form.html" with form=note_form saved=False %}
+  </div>
+{% endblock %}

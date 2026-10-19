@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load jalali_tags %}
+
+{% block title %}{{ habit.title }}{% endblock %}
+
+{% block content %}
+  <nav class="crumbs" aria-label="مسیر صفحه"><a href="{% url 'habits:list' %}"><svg class="i i-sm" aria-hidden="true"><use href="#i-chevron-right"/></svg>عادت‌ها</a></nav>
+
+  <section class="goal-hero glow" aria-labelledby="habit-title">
+    <div class="goal-hero-main">
+      <div class="row row-wrap" style="gap:.4rem">
+        {% if habit.active %}<span class="chip chip-primary"><svg class="i" aria-hidden="true"><use href="#i-habits"/></svg>فعال</span>{% else %}<span class="chip">غیرفعال</span>{% endif %}
+        <span class="chip">{% if habit.weekday_list %}{{ habit.weekday_labels|join:"، " }}{% else %}هر روز{% endif %}</span>
+        {% if habit.goal %}<a class="chip chip-primary" style="text-decoration:none" href="{% url 'goals:detail' habit.goal.pk %}"><svg class="i" aria-hidden="true"><use href="#i-goals"/></svg>{{ habit.goal.title }}</a>{% endif %}
+      </div>
+      <h1 id="habit-title" class="goal-title">{{ habit.title }}</h1>
+      <div class="goal-actions">
+        <a class="btn btn-ghost" href="{% url 'habits:edit' habit.pk %}"><svg class="i" aria-hidden="true"><use href="#i-edit"/></svg>ویرایش</a>
+        <form method="post" action="{% url 'habits:toggle' habit.pk %}">{% csrf_token %}<button type="submit" class="btn btn-ghost">{% if habit.active %}غیرفعال کن{% else %}فعال کن{% endif %}</button></form>
+      </div>
+    </div>
+    <div class="goal-ring flame-wrap" aria-hidden="true">
+      <div class="flame{% if habit.streak %} is-lit{% endif %}"><svg class="i" aria-hidden="true"><use href="#i-flame"/></svg></div>
+    </div>
+  </section>
+
+  <div class="stat-grid mt-4">
+    <div class="card stat stat-wide tilt"><div class="stat-top"><svg class="i accent" aria-hidden="true"><use href="#i-flame"/></svg>روز متوالی فعلی</div><div class="stat-value"><span data-countup="{{ habit.streak }}">{{ habit.streak|fa }}</span> <small>روز</small></div></div>
+    <div class="card stat tilt"><div class="stat-top"><svg class="i" aria-hidden="true"><use href="#i-trophy"/></svg>بهترین رکورد</div><div class="stat-value"><span data-countup="{{ habit.best_streak }}">{{ habit.best_streak|fa }}</span></div></div>
+    <div class="card stat tilt"><div class="stat-top"><svg class="i" aria-hidden="true"><use href="#i-check-circle"/></svg>پایبندی، ۱۲ هفته</div><div class="stat-value">{% if history.rate is not None %}<span data-countup="{{ history.rate }}">{{ history.rate|fa }}</span><small>٪</small>{% else %}—{% endif %}</div></div>
+  </div>
+
+  <section class="card mt-4" aria-labelledby="hh-h">
+    <div class="row between row-wrap"><h2 id="hh-h" class="card-title">تاریخچه‌ی ۱۲ هفته‌ی اخیر</h2><span class="text-sm muted">{{ history.done|fa }} انجام · {{ history.missed|fa }} از دست رفته</span></div>
+    {% if history.has_data %}
+      <div class="heat-scroll">
+        <div class="heat heat-12" role="img" aria-label="تاریخچه‌ی این عادت در ۱۲ هفته‌ی اخیر؛ سبز یعنی انجام شده و قرمز یعنی از دست رفته">
+          {% for col in history.columns %}
+            <div class="heat-col" style="--c: {{ forloop.counter0 }}">
+              {% for cell in col.cells %}
+                <span class="heat-cell hs-{{ cell.state }}{% if cell.state == 'future' %} is-future{% endif %}"{% if cell.state != 'future' %} data-tip="{{ cell.date|jalali:'withweekday' }}" title="{{ cell.date|jalali:'withweekday' }}"{% endif %}></span>
+              {% endfor %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="heat-legend heat-legend-states" aria-hidden="true"><span class="lg"><i class="heat-cell hs-done"></i>انجام شد</span><span class="lg"><i class="heat-cell hs-missed"></i>از دست رفت</span><span class="lg"><i class="heat-cell hs-none"></i>برنامه‌ای نبود</span></div>
+    {% else %}
+      <div class="empty">
+        {% include "includes/illus.html" with kind="habits" %}
+        <h3>هنوز تاریخچه‌ای نیست</h3>
+        <p>وقتی این عادت چند روز تسک بسازد و تمام شود، اینجا نقشه‌اش را می‌بینی.</p>
+      </div>
+    {% endif %}
+  </section>
+
+  {% if history.has_data %}
+    <section class="card mt-4" aria-labelledby="hw-h">
+      <h2 id="hw-h" class="card-title">این عادت در کدام روزها بهتر است؟</h2>
+      <ul class="wk-list mt-3" data-stagger>
+        {% for d in history.weekdays %}
+          <li>
+            <span class="wk-name">{{ d.label }}</span>
+            <div class="progress grow" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ d.percent }}" aria-label="پایبندی در {{ d.label }}"><span style="--w: {{ d.percent }}%"></span></div>
+            <span class="wk-val text-sm">{% if d.total %}{{ d.done|fa }}/{{ d.total|fa }}{% else %}—{% endif %}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+{% endblock %}

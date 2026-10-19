@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load jalali_tags %}
+
+{% block title %}{% if ui_lang == "en" %}Task board{% else %}برد تسک‌ها{% endif %}{% endblock %}
+{% block main_class %}container container-dash{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div>
+    <h1>{% if ui_lang == "en" %}Task board{% else %}برد همه‌ی تسک‌ها{% endif %}</h1>
+    <p class="page-sub">{% if ui_lang == "en" %}Search and filter every dated task you own.{% else %}همه‌ی تسک‌های تاریخ‌دار را جستجو و فیلتر کن.{% endif %}</p>
+  </div>
+  <div class="row row-wrap" style="gap:.5rem"><a class="btn btn-ghost" href="{% url 'tasks:smart_add' %}">{% if ui_lang == "en" %}Smart add{% else %}افزودن هوشمند{% endif %}</a><a class="btn btn-primary" href="{% url 'tasks:list' %}">{% if ui_lang == "en" %}Day view{% else %}نمای روز{% endif %}</a></div>
+</section>
+
+<form class="card mb-4" method="get" aria-label="{% if ui_lang == 'en' %}Filter tasks{% else %}فیلتر تسک‌ها{% endif %}">
+  <div class="quick-add-extra">
+    <div class="span-2"><label class="field-label" for="board-q">{% if ui_lang == "en" %}Search{% else %}جستجو{% endif %}</label><input id="board-q" class="field" name="q" value="{{ query }}" type="search" placeholder="{% if ui_lang == 'en' %}Title…{% else %}عنوان…{% endif %}"></div>
+    <div><label class="field-label" for="board-status">{% if ui_lang == "en" %}Status{% else %}وضعیت{% endif %}</label><select id="board-status" class="field" name="status"><option value="">{% if ui_lang == "en" %}Any status{% else %}همهٔ وضعیت‌ها{% endif %}</option>{% for value, label in statuses %}<option value="{{ value }}"{% if current_status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <div><label class="field-label" for="board-priority">{% if ui_lang == "en" %}Priority{% else %}اولویت{% endif %}</label><select id="board-priority" class="field" name="priority"><option value="">{% if ui_lang == "en" %}Any priority{% else %}همهٔ اولویت‌ها{% endif %}</option>{% for value, label in priorities %}<option value="{{ value }}"{% if current_priority == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <div><label class="field-label" for="board-tag">{% if ui_lang == "en" %}Tag{% else %}برچسب{% endif %}</label><select id="board-tag" class="field" name="tag"><option value="">{% if ui_lang == "en" %}Any tag{% else %}همهٔ برچسب‌ها{% endif %}</option>{% for tag in tags %}<option value="{{ tag.pk }}"{% if current_tag == tag.pk|stringformat:'s' %} selected{% endif %}>#{{ tag.name }}</option>{% endfor %}</select></div>
+  </div>
+  <div class="row mt-3" style="gap:.5rem"><button class="btn btn-primary" type="submit">{% if ui_lang == "en" %}Apply filters{% else %}اعمال فیلتر{% endif %}</button><a class="btn btn-ghost" href="{% url 'tasks:board' %}">{% if ui_lang == "en" %}Clear{% else %}پاک‌کردن{% endif %}</a><span class="muted text-sm">{{ tasks_count }} {% if ui_lang == "en" %}tasks{% else %}تسک{% endif %}</span></div>
+</form>
+
+{% for group in groups %}
+<section class="card mb-3" aria-labelledby="board-day-{{ group.date|date:'Ymd' }}">
+  <div class="row between mb-2"><h2 id="board-day-{{ group.date|date:'Ymd' }}" class="card-title">{% if ui_lang == "en" %}{{ group.date|date:"l, M j, Y" }}{% else %}{{ group.date|jalali:"withweekday" }}{% endif %}</h2><span class="chip">{{ group.tasks|length }}</span></div>
+  <ul class="task-list board-task-list">
+  {% for task in group.tasks %}
+    <li class="task" data-status="{{ task.status }}" data-priority="{{ task.priority }}">
+      <div class="task-body"><a class="task-title" href="{% url 'tasks:detail' task.pk %}">{{ task.title }}</a><div class="task-meta">
+        <span class="chip">{{ task.get_status_display }}</span>{% if task.priority == "high" %}<span class="chip chip-danger">{% if ui_lang == "en" %}High{% else %}بالا{% endif %}</span>{% elif task.priority == "low" %}<span class="chip chip-primary">{% if ui_lang == "en" %}Low{% else %}کم{% endif %}</span>{% endif %}
+        {% if task.start_time %}<span class="chip ltr">{{ task.start_time|time:"H:i" }}{% if task.end_time %}–{{ task.end_time|time:"H:i" }}{% endif %}</span>{% endif %}{% if task.goal %}<span class="chip chip-primary">{{ task.goal.title }}</span>{% endif %}{% for tag in task.tags.all %}<span class="chip">#{{ tag.name }}</span>{% endfor %}
+      </div></div><a class="btn btn-ghost btn-sm" href="{% url 'tasks:detail' task.pk %}">{% if ui_lang == "en" %}Open{% else %}بازکردن{% endif %}</a>
+    </li>
+  {% endfor %}
+  </ul>
+</section>
+{% empty %}
+<div class="empty empty-card"><h2>{% if ui_lang == "en" %}No matching tasks{% else %}تسکی با این فیلتر نیست{% endif %}</h2><p>{% if ui_lang == "en" %}Try a different title or clear a filter.{% else %}عنوان دیگری را امتحان کن یا یکی از فیلترها را پاک کن.{% endif %}</p></div>
+{% endfor %}
+{% endblock %}

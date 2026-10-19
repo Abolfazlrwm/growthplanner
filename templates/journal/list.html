@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load jalali_tags %}
+
+{% block title %}دفتر یادداشت‌ها{% endblock %}
+
+{% block content %}
+  <div class="page-head">
+    <div>
+      <h1><svg class="i i-lg" aria-hidden="true" style="color:var(--primary)"><use href="#i-book"/></svg>دفتر یادداشت‌ها</h1>
+      <p class="page-sub">{{ total_notes|fa }} روز ثبت‌شده</p>
+    </div>
+    <a href="{% url 'core:home' %}#day-note-form" class="btn btn-primary"><svg class="i" aria-hidden="true"><use href="#i-edit"/></svg>نوشتن امروز</a>
+  </div>
+
+  <section class="card mood-strip" aria-labelledby="mood-h">
+    <div class="row between row-wrap">
+      <h2 id="mood-h" class="card-title">حال‌وهوا در ۳۰ روز اخیر</h2>
+      <span class="chip chip-accent">{% if mood_avg %}میانگین {{ mood_avg|floatformat:1|fa }} از ۵{% else %}هنوز ثبت نشده{% endif %}</span>
+    </div>
+    <div class="strip" role="img" aria-label="نمودار حال‌وهوای ۳۰ روز اخیر؛ {{ mood_days|fa }} روز ثبت شده">
+      {% for item in strip %}
+        <span class="strip-col" title="{{ item.date|jalali }}{% if item.mood %}: {{ item.mood|fa }} از ۵{% endif %}">
+          <i class="strip-bar{% if not item.mood %} is-empty{% endif %}" style="--h: {% if item.mood %}{{ item.mood }}{% else %}0{% endif %}; --n: {{ forloop.counter0 }}"></i>
+        </span>
+      {% endfor %}
+    </div>
+  </section>
+
+  <form method="get" class="search-form mt-4 mb-4" role="search" style="max-width:none">
+    <label for="jq" class="sr-only">جستجو در یادداشت‌ها</label>
+    <input type="search" id="jq" name="q" value="{{ query }}" placeholder="جستجو در متن یادداشت‌ها…" class="field">
+    <button type="submit" class="btn btn-primary"><svg class="i" aria-hidden="true"><use href="#i-search"/></svg><span>جستجو</span></button>
+  </form>
+
+  <ul class="stack-sm" data-stagger>
+    {% for note in page %}
+      <li class="card note-card">
+        <div class="row between">
+          <a class="bold" href="{% url 'tasks:list' %}?date={{ note.date|date:'Y-m-d' }}">{{ note.date|jalali:"withweekday" }}</a>
+          {% if note.mood %}<span class="chip chip-accent"><svg class="i" aria-hidden="true"><use href="#i-mood-{{ note.mood }}"/></svg>{{ note.get_mood_display }}</span>{% endif %}
+        </div>
+        {% if note.text %}<p class="note-text mt-2">{{ note.text|linebreaksbr }}</p>{% endif %}
+      </li>
+    {% empty %}
+      <li class="empty empty-card">
+        {% include "includes/illus.html" with kind="search" %}
+        {% if query %}
+          <h3>یادداشتی با این عبارت نیست</h3>
+          <p>کلمه‌ی دیگری را امتحان کن.</p>
+        {% else %}
+          <h3>دفترت هنوز خالی است</h3>
+          <p>در صفحه‌ی «امروز» چند خط بنویس و حال‌وهوایت را انتخاب کن؛ اینجا جمع می‌شود.</p>
+          <a href="{% url 'core:home' %}#day-note-form" class="btn btn-primary">نوشتن اولین یادداشت</a>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+
+  {% if page.has_other_pages %}
+    <nav class="row between mt-4" aria-label="صفحه‌بندی">
+      {% if page.has_previous %}<a class="btn btn-ghost btn-sm" href="?page={{ page.previous_page_number }}{% if query %}&amp;q={{ query|urlencode }}{% endif %}"><svg class="i i-sm" aria-hidden="true"><use href="#i-chevron-right"/></svg>جدیدتر</a>{% else %}<span></span>{% endif %}
+      <span class="text-sm muted">صفحه‌ی {{ page.number|fa }} از {{ page.paginator.num_pages|fa }}</span>
+      {% if page.has_next %}<a class="btn btn-ghost btn-sm" href="?page={{ page.next_page_number }}{% if query %}&amp;q={{ query|urlencode }}{% endif %}">قدیمی‌تر<svg class="i i-sm" aria-hidden="true"><use href="#i-chevron-left"/></svg></a>{% else %}<span></span>{% endif %}
+    </nav>
+  {% endif %}
+{% endblock %}

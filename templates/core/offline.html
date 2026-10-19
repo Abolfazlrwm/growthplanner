@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}آفلاین{% endblock %}
+
+{% block content %}
+  <div class="empty" style="min-height:60vh;justify-content:center">
+    {% include "includes/illus.html" with kind="offline" %}
+    <h1 style="font-size:1.3rem">اینترنت نداری</h1>
+    <p>این صفحه بدون اتصال باز نمی‌شود. وصل شو و دوباره امتحان کن؛ داده‌هایت سر جایشان هستند.</p>
+    <button type="button" class="btn btn-primary" onclick="location.reload()"><svg class="i" aria-hidden="true"><use href="#i-refresh"/></svg>تلاش دوباره</button>
+  </div>
+{% endblock %}

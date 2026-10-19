@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load jalali_tags %}
+
+{% block title %}تایم‌بندی روزانه{% endblock %}
+
+{% block content %}
+  <div class="cal-nav">
+    <a href="{% url 'calendar_view:timeline' prev_date|date:'Y-m-d' %}" class="btn btn-ghost btn-sm" aria-label="روز قبل"><svg class="i i-sm" aria-hidden="true"><use href="#i-chevron-right"/></svg><span class="only-desktop">دیروز</span></a>
+    <h1 style="font-size:1.15rem;text-align:center">{{ date|jalali:"withweekday" }}</h1>
+    <a href="{% url 'calendar_view:timeline' next_date|date:'Y-m-d' %}" class="btn btn-ghost btn-sm" aria-label="روز بعد"><span class="only-desktop">فردا</span><svg class="i i-sm" aria-hidden="true"><use href="#i-chevron-left"/></svg></a>
+  </div>
+  <div class="row between mb-4 text-sm">
+    {% if not is_today %}<a href="{% url 'calendar_view:timeline' %}" class="chip chip-primary" style="padding:.2rem .9rem;text-decoration:none">برو به امروز</a>{% else %}<span></span>{% endif %}
+    <a href="{% url 'tasks:list' %}?date={{ date|date:'Y-m-d' }}">صفحه‌ی تسک‌های این روز</a>
+  </div>
+
+  {% if untimed_tasks %}
+    <section class="untimed" aria-labelledby="untimed-h">
+      <h2 id="untimed-h" class="text-xs muted bold">بدون ساعت مشخص</h2>
+      <ul>
+        {% for task in untimed_tasks %}<li{% if task.status == 'done' %} class="is-done"{% endif %}>{{ task.title }}</li>{% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+
+  {% if not timed_positions and not untimed_tasks %}
+    <div class="empty empty-card mb-4">
+      {% include "includes/illus.html" with kind="tasks" %}
+      <h3>این روز خالی است</h3>
+      <p>برای تسک‌هایت ساعت شروع و پایان بگذار تا اینجا روی خط زمان بنشینند.</p>
+      <a href="{% url 'tasks:list' %}?date={{ date|date:'Y-m-d' }}" class="btn btn-primary">افزودن تسک</a>
+    </div>
+  {% endif %}
+
+  <div class="tl-wrap">
+    <div class="tl" data-timeline>
+      <div class="tl-hours ltr" aria-hidden="true">
+        {% for hour in hours %}<div>{{ hour|stringformat:"02d" }}:00</div>{% endfor %}
+      </div>
+      <div class="tl-grid">
+        {% for hour in hours %}<div class="tl-line" style="top: calc({{ hour }} * 60px)"></div>{% endfor %}
+        {% if is_today and now_minutes is not None %}<div class="tl-now" style="top: {{ now_minutes }}px" role="img" aria-label="اکنون"></div>{% endif %}
+        {% for pos in timed_positions %}
+          <div class="tl-event{% if pos.task.status == 'done' %} is-done{% elif pos.task.status == 'failed' %} is-failed{% endif %}" style="top: {{ pos.top }}%; height: {{ pos.height }}%;">
+            <strong>{{ pos.task.title }}</strong>
+            <span class="t ltr">{{ pos.task.start_time|time:"H:i" }}{% if pos.task.end_time %}–{{ pos.task.end_time|time:"H:i" }}{% endif %}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

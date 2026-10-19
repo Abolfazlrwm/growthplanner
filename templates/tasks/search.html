@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load jalali_tags %}
+
+{% block title %}جستجوی تسک‌ها{% endblock %}
+
+{% block content %}
+  <div class="page-head"><h1>جستجوی تسک‌ها</h1></div>
+
+  <form method="get" class="search-form mb-4" role="search" style="max-width:none">
+    <label for="q" class="sr-only">عنوان تسک</label>
+    <input type="search" id="q" name="q" value="{{ query }}" placeholder="عنوان تسک…" autofocus class="field">
+    <button type="submit" class="btn btn-primary"><svg class="i" aria-hidden="true"><use href="#i-search"/></svg><span>جستجو</span></button>
+  </form>
+
+  {% if query %}
+    <p class="text-sm muted mb-3" role="status">{{ results|length|fa }} نتیجه برای «{{ query }}»</p>
+    <ul class="stack-sm">
+      {% for task in results %}
+        <li>
+          <a href="{% url 'tasks:list' %}?date={{ task.date|date:'Y-m-d' }}" class="card card-link row between" style="padding:.8rem 1rem">
+            <span class="grow" {% if task.status == 'done' %}style="color:var(--ink-3);text-decoration:line-through"{% endif %}>
+              {{ task.title }}
+              {% if task.goal %}<span class="chip chip-primary" style="margin-inline-start:.4rem">{{ task.goal.title }}</span>{% endif %}
+              {% if task.habit %}<span class="chip">عادت</span>{% endif %}
+            </span>
+            <span class="text-xs muted nowrap">{{ task.date|jalali:"withweekday" }}</span>
+          </a>
+        </li>
+      {% empty %}
+        <li class="empty empty-card">
+          {% include "includes/illus.html" with kind="search" %}
+          <h3>چیزی پیدا نشد</h3>
+          <p>با بخش دیگری از عنوان یا یک کلمه‌ی کوتاه‌تر دوباره امتحان کن.</p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="empty empty-card">
+      {% include "includes/illus.html" with kind="search" %}
+      <h3>دنبال کدام تسک می‌گردی؟</h3>
+      <p>عنوان یا بخشی از عنوان را بنویس؛ جستجو روی همه‌ی روزها انجام می‌شود.</p>
+    </div>
+  {% endif %}
+{% endblock %}

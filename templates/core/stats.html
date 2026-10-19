@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% load jalali_tags %}
+
+{% block title %}آمار{% endblock %}
+
+{% block content %}
+  <div class="page-head">
+    <div>
+      <h1><svg class="i i-lg" aria-hidden="true" style="color:var(--primary)"><use href="#i-chart"/></svg>آمار</h1>
+      <p class="page-sub">نگاهی به عملکرد ۷ و ۳۰ روز اخیرت</p>
+    </div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="card stat stat-wide tilt reveal">
+      <div class="stat-top"><svg class="i accent" aria-hidden="true"><use href="#i-flame"/></svg>روز متوالی</div>
+      <div class="stat-value"><span data-countup="{{ streak }}">{{ streak|fa }}</span> <small>روز</small></div>
+    </div>
+    <div class="card stat tilt reveal" style="--delay:.05s">
+      <div class="stat-top"><svg class="i" aria-hidden="true"><use href="#i-check-circle"/></svg>تکمیل در ۷ روز</div>
+      <div class="stat-value">{% if week.percent is not None %}<span data-countup="{{ week.percent }}">{{ week.percent|fa }}</span><small>٪</small>{% else %}—{% endif %}</div>
+      {% if week_spark %}<svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><polyline points="{{ week_spark }}" pathLength="1"/></svg>{% endif %}
+    </div>
+    <div class="card stat tilt reveal" style="--delay:.1s">
+      <div class="stat-top"><svg class="i" aria-hidden="true"><use href="#i-check-circle"/></svg>تکمیل در ۳۰ روز</div>
+      <div class="stat-value">{% if month.percent is not None %}<span data-countup="{{ month.percent }}">{{ month.percent|fa }}</span><small>٪</small>{% else %}—{% endif %}</div>
+    </div>
+    <div class="card stat stat-wide tilt reveal" style="--delay:.15s">
+      <div class="stat-top"><svg class="i" aria-hidden="true"><use href="#i-mood-4"/></svg>حال‌وهوا، ۷ روز</div>
+      <div class="stat-value">{% if mood_avg %}{{ mood_avg|floatformat:1|fa }}{% else %}—{% endif %}<small> از ۵</small></div>
+    </div>
+  </div>
+
+  <section class="card mt-4" aria-labelledby="heat-h">
+    <div class="row between row-wrap">
+      <h2 id="heat-h" class="card-title">نقشه‌ی فعالیت</h2>
+      <span class="text-sm muted">{{ heatmap.total_done|fa }} تسک انجام‌شده در {{ heatmap.active_days|fa }} روز فعال</span>
+    </div>
+    <div class="heat-scroll">
+      <div class="heat" role="img" aria-label="نقشه‌ی فعالیت ۱۴ هفته‌ی اخیر؛ هر مربع یک روز است و رنگ پررنگ‌تر یعنی تسک بیشتری انجام شده">
+        {% for col in heatmap.columns %}
+          <div class="heat-col" style="--c: {{ forloop.counter0 }}">
+            <span class="heat-month" aria-hidden="true">{{ col.month_label }}</span>
+            {% for cell in col.cells %}
+              <span class="heat-cell lv{{ cell.level }}{% if cell.future %} is-future{% endif %}"{% if not cell.future %} data-tip="{{ cell.label }}" title="{{ cell.label }}"{% endif %}></span>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="heat-legend" aria-hidden="true"><span>کمتر</span><i class="heat-cell lv0"></i><i class="heat-cell lv1"></i><i class="heat-cell lv2"></i><i class="heat-cell lv3"></i><i class="heat-cell lv4"></i><span>بیشتر</span></div>
+    {% if not heatmap.total_done %}<p class="text-sm muted mt-2">هر تسکی که انجام بدهی یک مربع این نقشه را رنگی می‌کند.</p>{% endif %}
+  </section>
+
+  <section class="card mt-4" aria-labelledby="bars-h">
+    <h2 id="bars-h" class="card-title">درصد انجام تسک‌ها در ۷ روز اخیر</h2>
+    {% if week.total %}
+      <div class="bars" role="img" aria-label="نمودار ستونی درصد انجام تسک‌ها در هفت روز اخیر">
+        {% for day in daily %}
+          <div class="bar-col">
+            <div class="bar-track">
+              <div class="bar-fill{% if day.total == 0 %} is-empty{% endif %}" style="height: {% if day.total == 0 %}4{% else %}{{ day.percent }}{% endif %}%; animation-delay: {{ forloop.counter0 }}00ms"></div>
+            </div>
+            <span class="bar-label">{{ day.label|fa }}</span>
+            <span class="bar-val">{% if day.total %}{{ day.percent|fa }}٪{% else %}–{% endif %}</span>
+          </div>
+        {% endfor %}
+      </div>
+      <ul class="sr-only">
+        {% for day in daily %}<li>{{ day.date|jalali }}: {% if day.total %}{{ day.percent|fa }} درصد از {{ day.total|fa }} تسک{% else %}بدون تسک{% endif %}</li>{% endfor %}
+      </ul>
+    {% else %}
+      <div class="empty">
+        {% include "includes/illus.html" with kind="tasks" %}
+        <h3>هنوز داده‌ای برای نمودار نیست</h3>
+        <p>چند تسک برای این هفته ثبت کن تا نمودار پیشرفتت اینجا ساخته شود.</p>
+        <a href="{% url 'core:home' %}" class="btn btn-primary">رفتن به امروز</a>
+      </div>
+    {% endif %}
+  </section>
+
+
+  <section class="card mt-4" aria-labelledby="badges-h">
+    <div class="row between row-wrap"><h2 id="badges-h" class="card-title">دستاوردها</h2><span class="chip chip-accent">{{ badges_earned|fa }} از {{ badges|length|fa }}</span></div>
+    <ul class="badges mt-3" data-stagger>
+      {% for b in badges %}
+        <li class="badge tilt{% if b.earned %} is-earned{% endif %}">
+          <span class="badge-icon" aria-hidden="true"><svg class="i" aria-hidden="true"><use href="#{{ b.icon }}"/></svg></span>
+          <div class="grow">
+            <b>{{ b.title }}</b>
+            <small>{{ b.description }}</small>
+            {% if b.earned %}<span class="chip chip-ok mt-1">به دست آمد</span>
+            {% else %}<div class="progress mt-1" role="progressbar" aria-valuemin="0" aria-valuemax="{{ b.target }}" aria-valuenow="{{ b.current }}" aria-label="پیشرفت {{ b.title }}"><span style="--w: {{ b.percent }}%"></span></div>
+            <small class="faint">{{ b.current|fa }} از {{ b.target|fa }}</small>{% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="card mt-4" aria-labelledby="focus-h">
+    <div class="row between row-wrap"><h2 id="focus-h" class="card-title">زمان تمرکز</h2><a class="btn btn-ghost btn-sm" href="{% url 'core:focus' %}"><svg class="i i-sm" aria-hidden="true"><use href="#i-timer"/></svg>شروع جلسه</a></div>
+    {% if focus.has_data %}
+      <div class="stat-grid focus-stats mt-3">
+        <div class="stat-mini"><span class="muted text-xs">امروز</span><b>{{ focus.today_minutes|duration }}</b></div>
+        <div class="stat-mini"><span class="muted text-xs">۷ روز اخیر</span><b>{{ focus.week_minutes|duration }}</b></div>
+      </div>
+      <div class="bars" role="img" aria-label="نمودار ستونی دقیقه‌های تمرکز در هفت روز اخیر">
+        {% for d in focus.series %}
+          <div class="bar-col">
+            <div class="bar-track"><div class="bar-fill{% if d.minutes == 0 %} is-empty{% endif %}" style="height: {% if d.minutes == 0 %}4{% else %}{{ d.percent }}{% endif %}%; animation-delay: {{ forloop.counter0 }}00ms"></div></div>
+            <span class="bar-label">{{ d.minutes|fa }}</span>
+            <span class="bar-val">{{ d.label }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">
+        {% include "includes/illus.html" with kind="tasks" %}
+        <h3>هنوز جلسه‌ی تمرکزی ثبت نشده</h3>
+        <p>یک جلسه‌ی ۲۵ دقیقه‌ای تمام کن تا زمان تمرکزت اینجا حساب شود.</p>
+        <a href="{% url 'core:focus' %}" class="btn btn-primary">شروع تمرکز</a>
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="card mt-4" aria-labelledby="insights-h">
+    <h2 id="insights-h" class="card-title">بینش‌های شخصی</h2>
+    {% if insights %}
+      <ul class="insights mt-3" data-stagger>
+        {% for item in insights %}
+          <li class="insight">
+            <span class="badge-icon" aria-hidden="true"><svg class="i" aria-hidden="true"><use href="#{{ item.icon }}"/></svg></span>
+            <div class="grow"><b>{{ item.title }}</b><p>{{ item.text }}</p></div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted text-sm mt-2">با ثبت تسک‌ها، ساعت‌ها و حال‌وهوای بیشتر، اینجا الگوهای کاری خودت را می‌بینی (حداقل ۱۰ تسک انجام‌شده لازم است).</p>
+    {% endif %}
+  </section>
+
+  <section class="card mt-4" aria-labelledby="goals-h">
+    <h2 id="goals-h" class="card-title">اهداف</h2>
+    {% if active_goals or completed_goals or abandoned_goals %}
+      <div class="seg-bar mt-3" aria-hidden="true">
+        {% if active_goals %}<span style="flex:{{ active_goals }};background:var(--primary)"></span>{% endif %}
+        {% if completed_goals %}<span style="flex:{{ completed_goals }};background:var(--ok)"></span>{% endif %}
+        {% if abandoned_goals %}<span style="flex:{{ abandoned_goals }};background:var(--line-strong)"></span>{% endif %}
+      </div>
+      <ul class="legend-list">
+        <li><span><i class="sw" style="background:var(--primary)"></i>فعال</span><strong>{{ active_goals|fa }}</strong></li>
+        <li><span><i class="sw" style="background:var(--ok)"></i>تکمیل‌شده</span><strong>{{ completed_goals|fa }}</strong></li>
+        <li><span><i class="sw" style="background:var(--line-strong)"></i>رهاشده</span><strong>{{ abandoned_goals|fa }}</strong></li>
+      </ul>
+    {% else %}
+      <div class="empty">
+        {% include "includes/illus.html" with kind="goals" %}
+        <h3>هنوز هدفی نساخته‌ای</h3>
+        <p>یک هدف با ددلاین بساز تا پیشرفتش خودکار از روی تسک‌ها حساب شود.</p>
+        <a href="{% url 'goals:create' %}" class="btn btn-primary">ساخت اولین هدف</a>
+      </div>
+    {% endif %}
+  </section>
+{% endblock %}

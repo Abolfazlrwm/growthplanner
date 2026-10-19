@@ -1,0 +1,173 @@
+{% load static %}{% with vn=request.resolver_match.view_name %}<!DOCTYPE html>
+<html lang="{{ ui_lang|default:'fa' }}" dir="{{ ui_dir|default:'rtl' }}" data-palette="{{ ui_palette|default:'tile' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{% block title %}رشد شخصی{% endblock %}{% block title_suffix %} · رشد شخصی{% endblock %}</title>
+  {% block meta %}
+  <meta name="description" content="{% block meta_description %}برنامه‌ریز روزانه‌ی فارسی با تقویم شمسی؛ اهداف، تسک‌ها و عادت‌هایت را یک‌جا مدیریت کن.{% endblock %}">
+  <meta name="robots" content="{% block robots %}noindex,nofollow{% endblock %}">
+  {% endblock %}
+
+  <link rel="manifest" href="{% static 'manifest.json' %}">
+  <link rel="icon" type="image/svg+xml" href="{% static 'icons/favicon.svg' %}">
+  <link rel="icon" type="image/png" sizes="192x192" href="{% static 'icons/icon-192.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'icons/apple-touch-icon.png' %}">
+  <meta name="theme-color" content="#eef3f4" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b1a1d" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="رشد شخصی">
+  {% block head_extra %}{% endblock %}
+
+  <!-- Apply the saved/OS theme before first paint so there is no light→dark flash. -->
+  <script>
+    (function () {
+      var stored = null;
+      try { stored = localStorage.getItem("theme"); } catch (e) {}
+      var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.classList.add("js");
+      if (stored === "dark" || (!stored && prefersDark)) document.documentElement.classList.add("dark");
+    })();
+  </script>
+
+  {% if ui_js_i18n %}<script>window.I18N = {{ ui_js_i18n|safe }};</script>{% endif %}
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link rel="stylesheet" href="{% static 'css/workspace.css' %}">
+  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js" defer></script>
+</head>
+<body class="{% block body_class %}{% if user.is_authenticated %}has-tabbar has-workspace{% endif %}{% endblock %}"
+      data-sw="{% url 'core:service_worker' %}"
+      hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  {% include "includes/icons.html" %}
+  <a class="skip-link" href="#main">پرش به محتوای اصلی</a>
+  {% if user.is_authenticated %}{% include "includes/workspace_nav.html" %}{% endif %}
+
+  {% block header %}
+  <header class="appbar">
+    <div class="container-wide appbar-inner">
+      {% if user.is_authenticated %}
+        <button type="button" class="icon-btn burger" data-drawer-open aria-label="باز کردن منو" aria-haspopup="dialog" aria-expanded="false" aria-controls="drawer">
+          <span class="burger-lines" aria-hidden="true"><i></i><i></i><i></i></span>
+        </button>
+      {% endif %}
+      <a href="{% url 'core:home' %}" class="brand" aria-label="رشد شخصی — صفحه‌ی اصلی">
+        <svg class="i" aria-hidden="true"><use href="#i-logo"/></svg>
+        <span>رشد شخصی</span>
+      </a>
+
+      {% if user.is_authenticated %}
+        <nav class="nav" aria-label="دسترسی سریع">
+          <a href="{% url 'core:home' %}"{% if vn == 'core:home' %} aria-current="page"{% endif %}>امروز</a>
+          <a href="{% url 'tasks:list' %}"{% if vn == 'tasks:list' %} aria-current="page"{% endif %}>تسک‌ها</a>
+          <a href="{% url 'calendar_view:month' %}"{% if vn == 'calendar_view:month' %} aria-current="page"{% endif %}>تقویم</a>
+        </nav>
+      {% endif %}
+
+      <div class="appbar-actions">
+        {% if user.is_authenticated %}
+          <button type="button" class="icon-btn only-desktop" data-palette-open aria-label="جستجوی سریع (Ctrl+K)" title="جستجوی سریع · Ctrl+K"><svg class="i" aria-hidden="true"><use href="#i-command"/></svg></button>
+          <a href="{% url 'tasks:search' %}" class="icon-btn" aria-label="جستجوی تسک‌ها"><svg class="i" aria-hidden="true"><use href="#i-search"/></svg></a>
+        {% endif %}
+        {% if not user.is_authenticated %}
+          {% if ui_lang == "en" %}<a href="{% url 'core:set_language' 'fa' %}?next={{ request.get_full_path|urlencode }}" class="icon-btn lang-flag" lang="fa" hreflang="fa" aria-label="فارسی">FA</a>{% else %}<a href="{% url 'core:set_language' 'en' %}?next={{ request.get_full_path|urlencode }}" class="icon-btn lang-flag" lang="en" hreflang="en" aria-label="English">EN</a>{% endif %}
+        {% endif %}
+        <button type="button" class="icon-btn" data-appearance-open aria-label="ظاهر و زبان" aria-haspopup="dialog" aria-expanded="false" aria-controls="appearance-pop"><svg class="i" aria-hidden="true"><use href="#i-palette"/></svg></button>
+        <button type="button" class="icon-btn hide-sm" data-theme-toggle aria-label="تغییر پوسته‌ی روشن/تاریک" aria-pressed="false">
+          <svg class="i i-moon" aria-hidden="true"><use href="#i-moon"/></svg><svg class="i i-sun" aria-hidden="true"><use href="#i-sun"/></svg>
+        </button>
+        {% if not user.is_authenticated %}
+          <a href="{% url 'accounts:login' %}" class="btn btn-ghost btn-sm hide-xs">ورود</a>
+          <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-sm">ثبت‌نام</a>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+  {% endblock %}
+
+  <main id="main" tabindex="-1" class="{% block main_class %}container{% endblock %}">
+    {% if messages %}
+      <div class="stack-sm mb-4" role="status">
+        {% for message in messages %}
+          <div class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'success' %}alert-success{% endif %}">
+            <svg class="i" aria-hidden="true"><use href="#{% if message.tags == 'error' %}i-alert{% elif message.tags == 'success' %}i-check-circle{% else %}i-info{% endif %}"/></svg>
+            <span>{{ message }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  {% if user.is_authenticated %}
+    <nav class="tabbar" aria-label="ناوبری سریع">
+      <a href="{% url 'core:home' %}"{% if vn == 'core:home' %} aria-current="page"{% endif %}><svg class="i" aria-hidden="true"><use href="#i-today"/></svg>امروز</a>
+      <a href="{% url 'tasks:list' %}"{% if vn == 'tasks:list' %} aria-current="page"{% endif %}><svg class="i" aria-hidden="true"><use href="#i-tasks"/></svg>تسک‌ها</a>
+      <a href="{% url 'calendar_view:month' %}"{% if vn == 'calendar_view:month' %} aria-current="page"{% endif %}><svg class="i" aria-hidden="true"><use href="#i-calendar"/></svg>تقویم</a>
+      <a href="{% url 'core:focus' %}"{% if vn == 'core:focus' %} aria-current="page"{% endif %}><svg class="i" aria-hidden="true"><use href="#i-timer"/></svg>تمرکز</a>
+      <a href="{% url 'core:stats' %}"{% if vn == 'core:stats' %} aria-current="page"{% endif %}><svg class="i" aria-hidden="true"><use href="#i-chart"/></svg>آمار</a>
+    </nav>
+
+    <div id="drawer-backdrop" class="drawer-backdrop" hidden data-drawer-close></div>
+    <aside id="drawer" class="drawer" role="dialog" aria-modal="true" aria-label="منوی اصلی" hidden>
+      <div class="drawer-head">
+        <span class="avatar" aria-hidden="true">{{ user.get_username|first|upper }}</span>
+        <div class="grow">
+          <div class="bold ltr" style="text-align:right">{{ user.get_username }}</div>
+          <div class="text-xs faint">همه‌ی بخش‌ها اینجاست</div>
+        </div>
+        <button type="button" class="icon-btn" data-drawer-close aria-label="بستن منو"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg></button>
+      </div>
+
+      <nav class="drawer-nav" aria-label="همه‌ی بخش‌ها">
+        <p class="drawer-group">برنامه‌ریزی</p>
+        <a class="drawer-item" data-cmd data-key="h" href="{% url 'core:home' %}" style="--i:1"{% if vn == 'core:home' %} aria-current="page"{% endif %}><svg class="i" aria-hidden="true"><use href="#i-today"/></svg><span><b>امروز</b><small>تسک‌ها، مرور و یادداشت امروز</small></span></a>
+        <a class="drawer-item" data-cmd data-key="t" href="{% url 'tasks:list' %}" style="--i:2"{% if vn == 'tasks:list' %} aria-current="page"{% endif %}><svg class="i" aria-hidden="true"><use href="#i-tasks"/></svg><span><b>تسک‌ها</b><small>هر روزی را باز کن</small></span></a>
+        <a class="drawer-item" data-cmd data-key="o" href="{% url 'goals:list' %}" style="--i:3"{% if vn == 'goals:list' or vn == 'goals:create' or vn == 'goals:edit' or vn == 'goals:detail' %} aria-current="page"{% endif %}><svg class="i" aria-hidden="true"><use href="#i-goals"/></svg><span><b>اهداف</b><small>ددلاین و پیشرفت</small></span></a>
+        <a class="drawer-item" data-cmd data-key="b" href="{% url 'habits:list' %}" style="--i:4"{% if vn == 'habits:list' or vn == 'habits:create' or vn == 'habits:edit' or vn == 'habits:detail' %} aria-current="page"{% endif %}><svg class="i" aria-hidden="true"><use href="#i-habits"/></svg><span><b>عادت‌ها</b><small>تکرار و روزهای متوالی</small></span></a>
+
+        <p class="drawer-group">زمان و تمرکز</p>
+        <a class="drawer-item" data-cmd data-key="c" href="{% url 'calendar_view:month' %}" style="--i:5"{% if vn == 'calendar_view:month' %} aria-current="page"{% endif %}><svg class="i" aria-hidden="true"><use href="#i-calendar"/></svg><span><b>تقویم شمسی</b><small>نمای ماهانه</small></span></a>
+        <a class="drawer-item" data-cmd data-key="w" href="{% url 'calendar_view:week' %}" style="--i:6"{% if vn == 'calendar_view:week' %} aria-current="page"{% endif %}><svg class="i" aria-hidden="true"><use href="#i-week"/></svg><span><b>برنامه‌ی هفتگی</b><small>هفت روز کنار هم، با کشیدن و رها کردن</small></span></a>
+        <a class="drawer-item" data-cmd data-key="l" href="{% url 'calendar_view:timeline' %}" style="--i:6"{% if vn == 'calendar_view:timeline' %} aria-current="page"{% endif %}><svg class="i" aria-hidden="true"><use href="#i-clock"/></svg><span><b>تایم‌بندی روز</b><small>خط زمان ساعتی</small></span></a>
+        <a class="drawer-item" data-cmd data-key="f" href="{% url 'core:focus' %}" style="--i:7"{% if vn == 'core:focus' %} aria-current="page"{% endif %}><svg class="i" aria-hidden="true"><use href="#i-timer"/></svg><span><b>حالت تمرکز</b><small>تایمر پومودورو برای تسک‌ها</small></span></a>
+
+        <p class="drawer-group">تحلیل و حساب</p>
+        <a class="drawer-item" data-cmd data-key="s" href="{% url 'core:stats' %}" style="--i:8"{% if vn == 'core:stats' %} aria-current="page"{% endif %}><svg class="i" aria-hidden="true"><use href="#i-chart"/></svg><span><b>آمار و نقشه‌ی فعالیت</b><small>روند ۷ و ۳۰ روز اخیر</small></span></a>
+        <a class="drawer-item" data-cmd data-key="j" href="{% url 'journal:list' %}" style="--i:9"{% if vn == 'journal:list' %} aria-current="page"{% endif %}><svg class="i" aria-hidden="true"><use href="#i-book"/></svg><span><b>دفتر یادداشت‌ها</b><small>مرور حال‌وهوا و نوشته‌های قبلی</small></span></a>
+        <a class="drawer-item" data-cmd data-key="q" href="{% url 'tasks:search' %}" style="--i:9"{% if vn == 'tasks:search' %} aria-current="page"{% endif %}><svg class="i" aria-hidden="true"><use href="#i-search"/></svg><span><b>جستجوی تسک‌ها</b><small>در همه‌ی روزها</small></span></a>
+        <a class="drawer-item" href="{% url 'tasks:board' %}"><svg class="i"><use href="#i-tasks"/></svg><span><b>{% if ui_lang == 'en' %}Task board{% else %}برد همهٔ تسک‌ها{% endif %}</b></span></a>
+        <a class="drawer-item" href="{% url 'tasks:smart_add' %}"><svg class="i"><use href="#i-bolt"/></svg><span><b>{% if ui_lang == 'en' %}Natural quick add{% else %}افزودن با یک جمله{% endif %}</b></span></a>
+        <a class="drawer-item" href="{% url 'assistant:index' %}"><svg class="i"><use href="#i-sparkle"/></svg><span><b>{% if ui_lang == 'en' %}AI companion{% else %}همراه هوشمند{% endif %}</b></span></a>
+        <a class="drawer-item" href="{% url 'calendar_view:subscription' %}"><svg class="i"><use href="#i-calendar-plus"/></svg><span><b>{% if ui_lang == 'en' %}Calendar subscription{% else %}اشتراک فید تقویم{% endif %}</b></span></a>
+        <a class="drawer-item" data-cmd data-key="a" href="{% url 'accounts:settings' %}" style="--i:10"{% if vn == 'accounts:settings' %} aria-current="page"{% endif %}><svg class="i" aria-hidden="true"><use href="#i-user"/></svg><span><b>تنظیمات حساب</b><small>رمز، خروجی داده، تقویم</small></span></a>
+      </nav>
+
+      <div class="drawer-foot">
+        <button type="button" class="drawer-item" data-appearance-open><svg class="i" aria-hidden="true"><use href="#i-palette"/></svg><span><b>ظاهر و زبان</b><small>رنگ‌بندی، پوسته و زبان</small></span></button>
+        <button type="button" class="drawer-item" data-install hidden><svg class="i" aria-hidden="true"><use href="#i-download-app"/></svg><span><b>نصب اپ</b><small>روی صفحه‌ی خانه‌ی گوشی یا رایانه</small></span></button>
+        <button type="button" class="drawer-item" data-tour-start><svg class="i" aria-hidden="true"><use href="#i-sparkle"/></svg><span><b>راهنمای شروع</b><small>یک تور کوتاه از بخش‌های برنامه</small></span></button>
+        <button type="button" class="drawer-item" data-theme-toggle aria-pressed="false"><svg class="i i-moon" aria-hidden="true"><use href="#i-moon"/></svg><svg class="i i-sun" aria-hidden="true"><use href="#i-sun"/></svg><span><b>پوسته‌ی تاریک</b><small>روشن و تاریک را عوض کن</small></span><i class="switch" aria-hidden="true"></i></button>
+        <button type="button" class="drawer-item only-desktop" data-palette-open><svg class="i" aria-hidden="true"><use href="#i-command"/></svg><span><b>جستجوی سریع</b><small>برو به هر صفحه با Ctrl + K</small></span></button>
+        <form method="post" action="{% url 'accounts:logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="drawer-item is-danger"><svg class="i" aria-hidden="true"><use href="#i-logout"/></svg><span><b>خروج از حساب</b></span></button>
+        </form>
+      </div>
+    </aside>
+  {% endif %}
+
+  <div id="appearance-backdrop" class="ap-backdrop" hidden data-appearance-close></div>
+  <div id="appearance-pop" class="ap-popover" role="dialog" aria-modal="true" aria-label="ظاهر و زبان" hidden>
+    <div class="row between mb-3"><h2 class="card-title">ظاهر و زبان</h2><button type="button" class="icon-btn" data-appearance-close aria-label="بستن"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+    {% include "includes/appearance.html" %}
+  </div>
+  {% if user.is_authenticated %}{% include "includes/tour.html" %}{% endif %}
+
+  <div id="toast-container" class="toasts" role="status" aria-live="polite"></div>
+  <script src="{% static 'js/app.js' %}" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>{% endwith %}

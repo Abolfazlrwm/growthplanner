@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load jalali_tags %}
+
+{% block title %}اهداف{% endblock %}
+
+{% block content %}
+  <div class="page-head">
+    <h1><svg class="i i-lg" aria-hidden="true" style="color:var(--primary)"><use href="#i-goals"/></svg>اهداف</h1>
+    <a href="{% url 'goals:create' %}" class="btn btn-primary"><svg class="i" aria-hidden="true"><use href="#i-plus"/></svg>هدف جدید</a>
+  </div>
+
+  <div class="filters">
+    <nav class="seg" aria-label="فیلتر وضعیت">
+      {% for value, label in statuses %}
+        <a href="?status={{ value }}{% if current_q %}&amp;q={{ current_q|urlencode }}{% endif %}"{% if current_status == value %} aria-current="true"{% endif %}>{{ label }}</a>
+      {% endfor %}
+    </nav>
+    <form method="get" class="search-form" role="search">
+      <input type="hidden" name="status" value="{{ current_status }}">
+      <label for="goal-q" class="sr-only">جستجو در اهداف</label>
+      <input type="search" id="goal-q" name="q" value="{{ current_q }}" placeholder="جستجو…" class="field">
+      <button type="submit" class="icon-btn" style="background:var(--surface-2)" aria-label="جستجو"><svg class="i" aria-hidden="true"><use href="#i-search"/></svg></button>
+    </form>
+  </div>
+
+  <ul>
+    {% for goal in goals %}
+      <li class="card item-card">
+        <div class="item-head">
+          <a class="item-title item-link" href="{% url 'goals:detail' goal.pk %}">{{ goal.title }}</a>
+          <span class="chip chip-accent"><svg class="i" aria-hidden="true"><use href="#i-flag"/></svg>{{ goal.deadline|jalali }}</span>
+        </div>
+        <div class="progress mt-3" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ goal.progress_percent }}" aria-label="پیشرفت «{{ goal.title }}»">
+          <span style="--w: {{ goal.progress_percent }}%"></span>
+        </div>
+        <div class="item-foot">
+          <span class="text-sm muted">{{ goal.progress_percent|fa }}٪ انجام‌شده
+            {% if goal.status == "completed" %}<span class="chip chip-ok">تکمیل‌شده</span>{% elif goal.status == "abandoned" %}<span class="chip">رهاشده</span>{% endif %}
+          </span>
+          <span class="item-actions">
+            <a class="icon-btn" href="{% url 'goals:edit' goal.pk %}" aria-label="ویرایش «{{ goal.title }}»" title="ویرایش"><svg class="i" aria-hidden="true"><use href="#i-edit"/></svg></a>
+            <a class="icon-btn danger" href="{% url 'goals:delete' goal.pk %}" aria-label="حذف «{{ goal.title }}»" title="حذف"><svg class="i" aria-hidden="true"><use href="#i-trash"/></svg></a>
+          </span>
+        </div>
+      </li>
+    {% empty %}
+      <li class="empty empty-card">
+        {% include "includes/illus.html" with kind="goals" %}
+        {% if current_q %}
+          <h3>هدفی با این جستجو پیدا نشد</h3>
+          <p>عبارت دیگری را امتحان کن یا فیلتر را روی «همه» بگذار.</p>
+        {% elif current_status == "archive" %}
+          <h3>آرشیو خالی است</h3>
+          <p>اهداف تکمیل‌شده یا رهاشده اینجا جمع می‌شوند.</p>
+        {% else %}
+          <h3>هنوز هدفی نداری</h3>
+          <p>یک هدف با ددلاین بساز؛ پیشرفتش خودکار از روی تسک‌های وصل‌شده به آن حساب می‌شود.</p>
+          <a href="{% url 'goals:create' %}" class="btn btn-primary">ساخت اولین هدف</a>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

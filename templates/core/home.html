@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% load jalali_tags %}
+
+{% block title %}امروز{% endblock %}
+{% block main_class %}container container-dash{% endblock %}
+
+{% block content %}
+  <div class="workspace-tools"><span class="eyebrow">{% if ui_lang == 'en' %}YOUR PERSONAL GROWTH SPACE{% else %}فضای رشد شخصی تو{% endif %}</span><div class="row"><a class="btn btn-ghost btn-sm" href="{% url 'calendar_view:subscription' %}"><svg class="i"><use href="#i-calendar-plus"/></svg>{% if ui_lang == 'en' %}Calendar feed{% else %}فید تقویم{% endif %}</a><a class="btn btn-primary btn-sm" href="{% url 'tasks:smart_add' %}"><svg class="i"><use href="#i-plus"/></svg>{% if ui_lang == 'en' %}Add a task{% else %}تسک جدید{% endif %}</a></div></div>
+  <section class="hero-today reveal" aria-labelledby="hero-greet">
+    <div class="hero-text grow">
+      <h1 id="hero-greet" class="hero-greet">{{ greeting }}</h1>
+      <p class="hero-date">{{ today_jalali }}</p>
+      <p class="hero-msg" aria-live="polite" data-hero-msg
+         data-msg-empty="یک کار کوچک بنویس و روزت را شروع کن."
+         data-msg-done="همه‌ی کارهای امروز انجام شد. دستت درد نکنه!"
+         data-msg-progress="{n} کار مونده؛ قدم‌به‌قدم.">{{ hero_message }}</p>
+      {% if streak %}
+        <p class="mt-2"><span class="chip streak"><svg class="i" aria-hidden="true"><use href="#i-flame"/></svg>{{ streak|fa }} روز متوالی</span></p>
+      {% endif %}
+    </div>
+    <div class="ring{% if total_count and done_count == total_count %} is-complete{% endif %}" data-ring style="--p: {{ progress_percent }}" aria-hidden="true">
+      <svg viewBox="0 0 100 100" focusable="false">
+        <circle class="track" cx="50" cy="50" r="42" pathLength="100"/>
+        <circle class="bar" cx="50" cy="50" r="42" pathLength="100"/>
+      </svg>
+      <div class="ring-label"><div>
+        <strong data-ring-pct>{{ progress_percent|fa }}٪</strong>
+        <span data-ring-count>{{ done_count|fa }} از {{ total_count|fa }}</span>
+      </div></div>
+    </div>
+  </section>
+
+  <section class="overview-metrics" aria-label="{% if ui_lang == 'en' %}Your progress at a glance{% else %}پیشرفت در یک نگاه{% endif %}">
+    <a class="overview-metric" href="{% url 'core:stats' %}" style="text-decoration:none"><svg class="i"><use href="#i-check-circle"/></svg><small>{% if ui_lang == 'en' %}Weekly completion{% else %}عملکرد هفت روز اخیر{% endif %}</small><strong>{{ week_summary.percent|default_if_none:0|fa }}٪</strong><span>{{ week_summary.done|fa }} / {{ week_summary.total|fa }}</span></a>
+    <a class="overview-metric" href="{% url 'core:focus' %}" style="text-decoration:none"><svg class="i"><use href="#i-timer"/></svg><small>{% if ui_lang == 'en' %}Focus today{% else %}تمرکز امروز{% endif %}</small><strong>{{ focus_summary.today_minutes|fa }}</strong><span>{% if ui_lang == 'en' %}minutes of undivided attention{% else %}دقیقه برای کارهای مهم{% endif %}</span></a>
+    <a class="overview-metric" href="{% url 'habits:list' %}" style="text-decoration:none"><svg class="i"><use href="#i-habits"/></svg><small>{% if ui_lang == 'en' %}Active habits{% else %}عادت‌های فعال{% endif %}</small><strong>{{ active_habits_count|fa }}</strong><span>{% if ui_lang == 'en' %}small steps, every day{% else %}قدم‌های کوچک و پیوسته{% endif %}</span></a>
+  </section>
+  <nav class="week-strip" aria-label="{% if ui_lang == 'en' %}This week{% else %}هفتهٔ من{% endif %}">{% for day in week_strip %}<a href="{% url 'tasks:list' %}?date={{ day.date|date:'Y-m-d' }}"{% if day.is_today %} class="is-today" aria-current="date"{% endif %}><small>{{ day.label }}</small><strong>{{ day.day }}</strong><span>{{ day.done|fa }} / {{ day.total|fa }}</span></a>{% endfor %}</nav>
+  <div class="quick-smart"><svg class="i"><use href="#i-bolt"/></svg><div><b>{% if ui_lang == 'en' %}Think it. Say it. Plan it.{% else %}فقط بنویس. برنامه‌اش با ما.{% endif %}</b><p>{% if ui_lang == 'en' %}Try: tomorrow at 9 study for 30 minutes #learning{% else %}مثلاً: فردا ساعت ۹ مطالعه برای ۳۰ دقیقه #یادگیری{% endif %}</p></div><a href="{% url 'tasks:smart_add' %}" class="btn btn-ghost btn-sm">{% if ui_lang == 'en' %}Try natural quick add{% else %}افزودن با یک جمله{% endif %}</a></div>
+  <div class="dash">
+    <div class="dash-side">
+      <section class="card companion-card dash-card" style="order:-2"><span class="companion-kicker"><svg class="i"><use href="#i-sparkle"/></svg>GROWTH COMPANION</span><h2>{% if ui_lang == 'en' %}Your next step, a little clearer.{% else %}قدم بعدی‌ات را روشن‌تر ببین.{% endif %}</h2><p>{% if ui_lang == 'en' %}Plan a balanced day or turn a big goal into small, achievable steps.{% else %}یک روز متعادل بچین یا هدف بزرگت را به قدم‌های عملی تبدیل کن.{% endif %}</p><a href="{% url 'assistant:index' %}" class="btn btn-sm">{% if ui_lang == 'en' %}Talk to your companion{% else %}گفت‌وگو با همراه هوشمند{% endif %}</a></section>
+      {% if overview_goals %}<section class="card dash-card" style="order:-1"><div class="row between"><h2 class="card-title">{% if ui_lang == 'en' %}On your horizon{% else %}در مسیر هدف‌ها{% endif %}</h2><a href="{% url 'goals:list' %}" class="text-xs">{% if ui_lang == 'en' %}View all{% else %}همه{% endif %}</a></div>{% for goal in overview_goals %}<div class="goal-overview"><div class="row"><a href="{% url 'goals:detail' goal.pk %}">{{ goal.title }}</a><small>{{ goal.overview_progress|fa }}٪</small></div><div class="progress"><span style="--w:{{ goal.overview_progress }}%"></span></div></div>{% endfor %}</section>{% endif %}
+      {% if next_up %}
+        <section class="card nextup dash-card" style="order:0" aria-labelledby="nu-h">
+          <p class="eyebrow"><svg class="i i-sm" aria-hidden="true"><use href="#i-bolt"/></svg>بعدی</p>
+          <h2 id="nu-h" class="nextup-title">{{ next_up.title }}</h2>
+          <div class="task-meta mt-1">
+            {% if next_up.start_time %}<span class="chip"><svg class="i" aria-hidden="true"><use href="#i-clock"/></svg><span class="ltr">{{ next_up.start_time|time:"H:i" }}</span></span>{% endif %}
+            {% if next_up.goal %}<span class="chip chip-primary"><svg class="i" aria-hidden="true"><use href="#i-goals"/></svg>{{ next_up.goal.title }}</span>{% endif %}
+          </div>
+          <a href="{% url 'core:focus' %}?task={{ next_up.id }}" class="btn btn-primary btn-sm mt-3"><svg class="i" aria-hidden="true"><use href="#i-timer"/></svg>شروع تمرکز</a>
+        </section>
+      {% endif %}
+
+      {% if not onboarding.complete %}
+        <section class="card onboard dash-card" style="order:1" aria-labelledby="ob-h">
+          <div class="row between"><h2 id="ob-h" class="card-title">شروع سریع</h2><span class="chip chip-primary">{{ onboarding.done|fa }} از {{ onboarding.total|fa }}</span></div>
+          <div class="progress mt-2" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ onboarding.percent }}" aria-label="پیشرفت شروع سریع"><span style="--w: {{ onboarding.percent }}%"></span></div>
+          <ul class="steps-list mt-3">
+            {% for step in onboarding.steps %}
+              <li class="{% if step.done %}is-done{% endif %}">
+                <a href="{% url step.url %}{% if step.key == 'note' %}#day-note-form{% endif %}" {% if step.done %}aria-label="{{ step.title }} — انجام شد"{% endif %}>
+                  <span class="step-mark" aria-hidden="true"><svg class="i" aria-hidden="true"><use href="#{% if step.done %}i-check{% else %}{{ step.icon }}{% endif %}"/></svg></span>
+                  <span class="grow"><b>{{ step.title }}</b><small>{{ step.hint }}</small></span>
+                  <svg class="i i-sm faint" aria-hidden="true"><use href="#i-chevron-left"/></svg>
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% endif %}
+
+      {% if upcoming_goals %}
+        <section class="card card-accent dash-card" style="order:3" aria-labelledby="deadlines-h">
+          <h2 id="deadlines-h" class="card-title row" style="gap:.5rem"><svg class="i" aria-hidden="true"><use href="#i-flag"/></svg>ددلاین‌های نزدیک</h2>
+          <ul class="deadline-list mt-2">
+            {% for goal in upcoming_goals %}
+              <li>
+                <a href="{% url 'goals:edit' goal.pk %}">{{ goal.title }}</a>
+                <span class="text-sm deadline-meta">{{ goal.deadline|jalali:"withweekday" }} · {{ goal.progress_percent|fa }}٪</span>
+              </li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% endif %}
+
+      <div class="dash-card" style="order:4">
+        {% include "journal/_note_form.html" with form=note_form date=today saved=False is_today=True %}
+      </div>
+    </div>
+
+    <div class="dash-main" style="order:2">
+      <div class="section-title" style="margin-top:0">
+        <h2><svg class="i" aria-hidden="true"><use href="#i-tasks"/></svg>تسک‌های امروز</h2>
+        <span class="row" style="gap:.4rem">
+          <a href="{% url 'calendar_view:week' %}" class="btn btn-ghost btn-sm"><svg class="i i-sm" aria-hidden="true"><use href="#i-week"/></svg>هفته</a>
+          <a href="{% url 'calendar_view:timeline' %}" class="btn btn-ghost btn-sm"><svg class="i i-sm" aria-hidden="true"><use href="#i-clock"/></svg>تایم‌بندی</a>
+        </span>
+      </div>
+
+      {% include "tasks/_task_form.html" with form=task_form date=today %}
+
+      <ul id="task-list" class="task-list" data-task-list data-date="{{ today|date:'Y-m-d' }}">
+        {% for task in tasks %}{% include "tasks/_task_row.html" %}{% endfor %}
+        <li class="empty-state">
+          <div class="empty empty-card">
+            {% include "includes/illus.html" with kind="tasks" %}
+            <h3>امروز هنوز خالیه</h3>
+            <p>اولین تسک را بالا بنویس. حتی یک کار کوچک هم حساب می‌شود.</p>
+          </div>
+        </li>
+      </ul>
+
+      <section class="card mt-6" aria-labelledby="review-h">
+        <div class="row between row-wrap">
+          <div>
+            <h2 id="review-h" class="card-title">مرور روز</h2>
+            <p class="text-sm muted">تسک‌های ناتمام امروز را ببین و برای هرکدام تصمیم بگیر.</p>
+          </div>
+          <button type="button" class="btn btn-accent" data-review-url="{% url 'core:review' %}"
+                  hx-get="{% url 'core:review' %}" hx-target="#review-panel" hx-swap="outerHTML">
+            <svg class="i" aria-hidden="true"><use href="#i-check-circle"/></svg>مرور کن
+            {% if has_open_tasks %}<span class="sr-only">(تسک ناتمام دارید)</span>{% endif %}
+          </button>
+        </div>
+        <div id="review-panel" class="mt-3"></div>
+      </section>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,12 @@
+<li class="task" data-status="todo" data-priority="medium">
+  <div class="task-fail-form">
+    <form hx-post="{% url 'tasks:fail' task.id %}" hx-target="closest .task" hx-swap="outerHTML" class="row row-wrap grow" style="gap:.5rem">
+      {% csrf_token %}
+      <label for="fail-reason-{{ task.id }}" class="sr-only">چرا «{{ task.title }}» انجام نشد؟</label>
+      <span class="text-sm bold" style="flex-basis:100%">«{{ task.title }}» — چرا نشد؟</span>
+      <input type="text" name="fail_reason" id="fail-reason-{{ task.id }}" class="field" maxlength="255" placeholder="مثلاً وقتم کم آمد" autofocus>
+      <button type="submit" class="btn btn-danger btn-sm">ثبت</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-refresh-lists>انصراف</button>
+    </form>
+  </div>
+</li>

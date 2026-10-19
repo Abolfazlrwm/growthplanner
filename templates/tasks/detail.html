@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load jalali_tags %}
+{% block title %}{{ task.title }}{% endblock %}
+{% block main_class %}container container-dash{% endblock %}
+{% block content %}
+<nav class="crumbs" aria-label="{% if ui_lang == 'en' %}Breadcrumb{% else %}مسیر صفحه{% endif %}"><a href="{% url 'tasks:board' %}">{% if ui_lang == "en" %}Task board{% else %}برد تسک‌ها{% endif %}</a></nav>
+<section class="page-head"><div><div class="row row-wrap" style="gap:.4rem"><span class="chip">{{ task.get_status_display }}</span>{% if task.habit %}<span class="chip">{% if ui_lang == "en" %}Habit occurrence{% else %}رخداد عادت{% endif %}</span>{% endif %}</div><h1>{{ task.title }}</h1><p class="page-sub">{% if ui_lang == "en" %}{{ task.date|date:"l, M j, Y" }}{% else %}{{ task.date|jalali:"withweekday" }}{% endif %}</p></div><a class="btn btn-ghost" href="{% url 'tasks:list' %}?date={{ task.date|date:'Y-m-d' }}">{% if ui_lang == "en" %}Day view{% else %}نمای روز{% endif %}</a></section>
+
+<div class="card"><h2 class="card-title">{% if ui_lang == "en" %}Task details{% else %}جزئیات تسک{% endif %}</h2>
+<form method="post" class="mt-3">{% csrf_token %}<input type="hidden" name="action" value="update"><div class="quick-add-extra">
+<div class="span-2"><label class="field-label" for="{{ form.title.id_for_label }}">{% if ui_lang == "en" %}Title{% else %}عنوان{% endif %}</label>{{ form.title }}{{ form.title.errors }}</div>
+<div><label class="field-label" for="{{ form.goal.id_for_label }}">{% if ui_lang == "en" %}Goal{% else %}هدف{% endif %}</label>{{ form.goal }}</div>
+<div><label class="field-label" for="{{ form.date.id_for_label }}">{% if ui_lang == "en" %}Date{% else %}تاریخ{% endif %}</label>{{ form.date }}{{ form.date.errors }}</div>
+<div><label class="field-label" for="{{ form.start_time.id_for_label }}">{% if ui_lang == "en" %}Start{% else %}شروع{% endif %}</label>{{ form.start_time }}</div>
+<div><label class="field-label" for="{{ form.end_time.id_for_label }}">{% if ui_lang == "en" %}End{% else %}پایان{% endif %}</label>{{ form.end_time }}{{ form.end_time.errors }}</div>
+<div><label class="field-label" for="{{ form.status.id_for_label }}">{% if ui_lang == "en" %}Status{% else %}وضعیت{% endif %}</label>{{ form.status }}</div>
+<div><label class="field-label" for="{{ form.priority.id_for_label }}">{% if ui_lang == "en" %}Priority{% else %}اولویت{% endif %}</label>{{ form.priority }}</div>
+<div class="span-2"><label class="field-label" for="{{ form.tags.id_for_label }}">{% if ui_lang == "en" %}Tags{% else %}برچسب‌ها{% endif %}</label>{{ form.tags }}<p class="muted text-xs">{% if ui_lang == "en" %}Only your private tags are listed.{% else %}فقط برچسب‌های خصوصیِ حساب خودت اینجا هستند.{% endif %}</p></div>
+</div>{% if form.non_field_errors %}<div class="field-error mt-2">{{ form.non_field_errors }}</div>{% endif %}<button class="btn btn-primary mt-3" type="submit">{% if ui_lang == "en" %}Save changes{% else %}ذخیرهٔ تغییرات{% endif %}</button></form></div>
+
+<section class="card mt-4" aria-labelledby="subtasks-title"><div class="row between"><h2 id="subtasks-title" class="card-title">{% if ui_lang == "en" %}Subtasks{% else %}ریزکارها{% endif %}</h2><span class="chip">{{ subtasks|length }}</span></div>
+<ul class="task-list mt-3">{% for subtask in subtasks %}<li class="task"><form method="post" action="{% url 'tasks:detail' task.pk %}" class="row grow" style="gap:.6rem">{% csrf_token %}<input type="hidden" name="action" value="toggle_subtask"><input type="hidden" name="subtask_id" value="{{ subtask.pk }}"><button class="check" type="submit" aria-label="{% if ui_lang == 'en' %}Toggle subtask{% else %}تغییر وضعیت ریزکار{% endif %}" aria-pressed="{{ subtask.is_completed|yesno:'true,false' }}">{% if subtask.is_completed %}✓{% endif %}</button><span class="task-title{% if subtask.is_completed %} done{% endif %}">{{ subtask.title }}</span></form><form method="post" action="{% url 'tasks:detail' task.pk %}">{% csrf_token %}<input type="hidden" name="action" value="delete_subtask"><input type="hidden" name="subtask_id" value="{{ subtask.pk }}"><button class="icon-btn" type="submit" aria-label="{% if ui_lang == 'en' %}Delete subtask{% else %}حذف ریزکار{% endif %}">×</button></form></li>{% empty %}<li class="muted">{% if ui_lang == "en" %}Break this task into small, checkable steps.{% else %}این کار را به قدم‌های کوچک و قابل‌تیک‌زدن تقسیم کن.{% endif %}</li>{% endfor %}</ul>
+<form method="post" class="row mt-3" style="gap:.5rem">{% csrf_token %}<input type="hidden" name="action" value="add_subtask"><label class="sr-only" for="{{ subtask_form.title.id_for_label }}">{% if ui_lang == "en" %}Subtask title{% else %}عنوان ریزکار{% endif %}</label>{{ subtask_form.title }}<button class="btn btn-ghost" type="submit">{% if ui_lang == "en" %}Add subtask{% else %}افزودن ریزکار{% endif %}</button></form>{% for e in subtask_form.title.errors %}<p class="field-error">{{ e }}</p>{% endfor %}</section>
+{% endblock %}

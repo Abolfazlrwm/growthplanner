@@ -1,0 +1,57 @@
+<li class="task" data-status="{{ task.status }}" data-priority="{{ task.priority }}" data-id="{{ task.id }}"{% if task.habit %} data-habit="1"{% endif %}{% if task.is_open %} data-open="1"{% endif %}>
+  {% if task.status == "done" %}
+    <button type="button" class="check" aria-pressed="true" aria-label="برگرداندن «{{ task.title }}» به انجام‌نشده"
+            hx-post="{% url 'tasks:set_status' task.id 'todo' %}" hx-target="closest .task" hx-swap="outerHTML">
+      <svg class="i" aria-hidden="true"><use href="#i-check"/></svg>
+    </button>
+  {% else %}
+    <button type="button" class="check" aria-pressed="false" aria-label="علامت‌گذاری «{{ task.title }}» به‌عنوان انجام‌شده"
+            hx-post="{% url 'tasks:set_status' task.id 'done' %}" hx-target="closest .task" hx-swap="outerHTML">
+      <svg class="i" aria-hidden="true"><use href="#i-check"/></svg>
+    </button>
+  {% endif %}
+
+  <div class="task-body">
+    <a class="task-title" href="{% url 'tasks:detail' task.pk %}">{{ task.title }}</a>
+    <div class="task-meta">
+      {% if task.status == "in_progress" %}<span class="chip chip-accent"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg>در جریان</span>{% endif %}
+      {% if task.status == "failed" %}<span class="chip chip-danger"><svg class="i" aria-hidden="true"><use href="#i-x-circle"/></svg>نشد</span>{% endif %}
+      {% if task.status == "moved" %}<span class="chip"><svg class="i" aria-hidden="true"><use href="#i-forward"/></svg>منتقل‌شده</span>{% endif %}
+      {% if task.priority == "high" %}<span class="chip chip-danger"><svg class="i" aria-hidden="true"><use href="#i-flag"/></svg>اولویت بالا</span>{% elif task.priority == "low" %}<span class="chip chip-primary">کم‌اولویت</span>{% endif %}
+      {% if task.start_time %}<span class="chip"><svg class="i" aria-hidden="true"><use href="#i-clock"/></svg><span class="ltr">{{ task.start_time|time:"H:i" }}{% if task.end_time %}–{{ task.end_time|time:"H:i" }}{% endif %}</span></span>{% endif %}
+      {% if task.goal %}<span class="chip chip-primary"><svg class="i" aria-hidden="true"><use href="#i-goals"/></svg>{{ task.goal.title }}</span>{% endif %}
+      {% if task.habit %}<span class="chip"><svg class="i" aria-hidden="true"><use href="#i-habits"/></svg>عادت</span>{% endif %}
+      {% for tag in task.tags.all %}<span class="chip">#{{ tag.name }}</span>{% endfor %}
+    </div>
+    {% if task.status == "failed" and task.fail_reason %}
+      <div class="task-fail">چرا نشد: {{ task.fail_reason }}</div>
+    {% endif %}
+  </div>
+
+  <div class="task-actions">
+    {% if task.is_open %}
+      {% if task.status != "in_progress" %}
+        <button type="button" class="icon-btn act-start" aria-label="شروع «{{ task.title }}»" title="شروع"
+                hx-post="{% url 'tasks:set_status' task.id 'in_progress' %}" hx-target="closest .task" hx-swap="outerHTML"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg></button>
+      {% endif %}
+      <a class="icon-btn act-focus" href="{% url 'core:focus' %}?task={{ task.id }}" aria-label="تمرکز روی «{{ task.title }}»" title="حالت تمرکز"><svg class="i" aria-hidden="true"><use href="#i-timer"/></svg></a>
+      <button type="button" class="icon-btn act-fail" aria-label="ثبت نشدنِ «{{ task.title }}»" title="نشد"
+              hx-get="{% url 'tasks:fail' task.id %}" hx-target="closest .task" hx-swap="outerHTML"><svg class="i" aria-hidden="true"><use href="#i-x-circle"/></svg></button>
+      <button type="button" class="icon-btn act-move" aria-label="انتقال «{{ task.title }}» به فردا" title="برو فردا" data-toast="به فردا منتقل شد"
+              hx-post="{% url 'tasks:move' task.id %}" hx-target="closest .task" hx-swap="delete swap:220ms"><svg class="i" aria-hidden="true"><use href="#i-forward"/></svg></button>
+    {% endif %}
+    <button type="button" class="icon-btn" aria-label="ساخت کپی «{{ task.title }}» برای فردا" title="کپی برای فردا"
+            hx-post="{% url 'tasks:duplicate' task.id %}" hx-target="closest .task" hx-swap="outerHTML"><svg class="i" aria-hidden="true"><use href="#i-copy"/></svg></button>
+    {% if not task.habit and task.is_open %}
+      <button type="button" class="icon-btn act-resched" aria-label="تغییر روزِ «{{ task.title }}»" title="تغییر روز"
+              data-resched data-url="{% url 'tasks:reschedule' task.id %}"><svg class="i" aria-hidden="true"><use href="#i-resched"/></svg></button>
+    {% endif %}
+    {% if not task.habit %}
+      <button type="button" class="icon-btn act-delete" aria-label="حذف «{{ task.title }}»" title="حذف" data-toast="حذف شد"
+              hx-post="{% url 'tasks:delete' task.id %}" hx-target="closest .task" hx-swap="delete swap:220ms"
+              hx-confirm="این تسک حذف شود؟"><svg class="i" aria-hidden="true"><use href="#i-trash"/></svg></button>
+    {% else %}
+      <span class="locked" role="img" aria-label="این تسک از یک عادت ساخته شده؛ برای حذف همیشگی، خود عادت را غیرفعال یا حذف کن." title="این تسک از یک عادت ساخته شده؛ برای حذف همیشگی، خود عادت رو غیرفعال یا حذف کن."><svg class="i" aria-hidden="true"><use href="#i-lock"/></svg></span>
+    {% endif %}
+  </div>
+</li>

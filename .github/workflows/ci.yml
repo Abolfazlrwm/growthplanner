@@ -1,0 +1,30 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      SECRET_KEY: ci-test-secret-key-not-for-production-use-only
+      DEBUG: "True"
+      DATABASE_URL: sqlite:////tmp/growthplanner-ci.sqlite3
+      ALLOWED_HOSTS: localhost,testserver
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned dependencies
+        run: pip install -r requirements.txt
+      - name: Django checks and migration drift
+        run: python manage.py check && python manage.py makemigrations --check --dry-run
+      - name: Full isolated test suite
+        run: python manage.py test --noinput
+      - name: Production static compilation without runtime secrets
+        run: python manage.py collectstatic --noinput
+        env:
+          DEBUG: "False"
+      - name: Docker build
+        run: docker build -t growthplanner-ci .

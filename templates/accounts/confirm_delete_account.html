@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}حذف حساب{% endblock %}
+
+{% block content %}
+  <div class="auth"><div class="card auth-card text-center">
+    <div class="status-icon danger"><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg></div>
+    <h1 style="font-size:1.2rem;color:var(--danger)">حذف حساب کاربری</h1>
+    <p class="muted text-sm mt-2">
+      با این کار حساب «<span class="ltr">{{ user.get_username }}</span>» و همه‌ی اهداف، تسک‌ها، عادت‌ها و یادداشت‌هایت برای همیشه پاک می‌شود. این کار قابل بازگشت نیست.
+      اگر لازم داری، قبلش <a href="{% url 'accounts:export' %}">از داده‌هایت خروجی بگیر</a>.
+    </p>
+    <form method="post" class="row mt-4" style="gap:.6rem">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger grow">بله، حساب را حذف کن</button>
+      <a href="{% url 'accounts:settings' %}" class="btn btn-ghost">انصراف</a>
+    </form>
+  </div></div>
+{% endblock %}

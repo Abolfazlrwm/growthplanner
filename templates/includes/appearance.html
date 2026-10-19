@@ -1,0 +1,27 @@
+<div class="appearance" data-appearance>
+  <div class="ap-group">
+    <h3 class="ap-title">حالت نمایش</h3>
+    <div class="seg-pills" role="group" aria-label="حالت نمایش">
+      <button type="button" data-mode-set="light" aria-pressed="false"><svg class="i" aria-hidden="true"><use href="#i-sun"/></svg>روشن</button>
+      <button type="button" data-mode-set="dark" aria-pressed="false"><svg class="i" aria-hidden="true"><use href="#i-moon"/></svg>تاریک</button>
+      <button type="button" data-mode-set="auto" aria-pressed="false"><svg class="i" aria-hidden="true"><use href="#i-monitor"/></svg>خودکار</button>
+    </div>
+  </div>
+  <div class="ap-group">
+    <h3 class="ap-title">رنگ‌بندی</h3>
+    <div class="swatches" role="radiogroup" aria-label="رنگ‌بندی">
+      {% for key, name in ui_palettes %}
+        <button type="button" role="radio" aria-checked="{% if key == ui_palette %}true{% else %}false{% endif %}" class="swatch" data-palette-set="{{ key }}" data-palette="{{ key }}">
+          <span class="sw-dots" aria-hidden="true"></span><span class="sw-name">{{ name }}</span>
+        </button>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="ap-group">
+    <h3 class="ap-title">زبان</h3>
+    <div class="seg-pills" role="group" aria-label="زبان">
+      <a href="{% url 'core:set_language' 'fa' %}?next={{ request.get_full_path|urlencode }}" lang="fa" hreflang="fa"{% if ui_lang == "fa" %} aria-current="true"{% endif %}>فارسی</a>
+      <a href="{% url 'core:set_language' 'en' %}?next={{ request.get_full_path|urlencode }}" lang="en" hreflang="en"{% if ui_lang == "en" %} aria-current="true"{% endif %}>English</a>
+    </div>
+  </div>
+</div>

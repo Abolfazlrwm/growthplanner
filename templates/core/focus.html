@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static jalali_tags %}
+
+{% block title %}حالت تمرکز{% endblock %}
+{% block meta_description %}تایمر پومودورو برای کار عمیق روی تسک‌های امروز.{% endblock %}
+
+{% block content %}
+  <div class="page-head">
+    <div>
+      <h1><svg class="i i-lg" aria-hidden="true" style="color:var(--primary)"><use href="#i-timer"/></svg>حالت تمرکز</h1>
+      <p class="page-sub">یک تسک را انتخاب کن، تایمر را بزن و فقط روی همان کار کن.</p>
+    </div>
+  </div>
+  {% csrf_token %}
+
+  <section class="card focus" id="focus" data-mode="focus" data-log-url="{% url 'core:focus_log' %}" aria-label="تایمر تمرکز">
+    <div class="seg focus-modes" role="group" aria-label="نوع جلسه">
+      <button type="button" data-mode-btn="focus" data-minutes="25" aria-pressed="true">تمرکز</button>
+      <button type="button" data-mode-btn="short" data-minutes="5" aria-pressed="false">استراحت کوتاه</button>
+      <button type="button" data-mode-btn="long" data-minutes="15" aria-pressed="false">استراحت بلند</button>
+    </div>
+
+    <div class="focus-ring" data-focus-ring style="--p: 0">
+      <svg viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+        <circle class="track" cx="50" cy="50" r="45" pathLength="100"/>
+        <circle class="bar" cx="50" cy="50" r="45" pathLength="100"/>
+      </svg>
+      <div class="focus-readout">
+        <div class="focus-time ltr" data-focus-time role="timer" aria-live="off">۲۵:۰۰</div>
+        <div class="focus-state" data-focus-state aria-live="polite">آماده‌ای؟</div>
+      </div>
+    </div>
+
+    <div class="focus-adjust" role="group" aria-label="تنظیم مدت">
+      <button type="button" class="icon-btn" data-adjust="-5" aria-label="۵ دقیقه کمتر"><svg class="i" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
+      <span class="text-sm muted"><span data-focus-minutes>۲۵</span> دقیقه</span>
+      <button type="button" class="icon-btn" data-adjust="5" aria-label="۵ دقیقه بیشتر"><svg class="i" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron-down"/></svg></button>
+    </div>
+
+    <div class="focus-controls">
+      <button type="button" class="btn btn-primary btn-lg" data-focus-toggle><svg class="i" aria-hidden="true"><use href="#i-play"/></svg><span>شروع</span></button>
+      <button type="button" class="btn btn-ghost btn-lg" data-focus-reset aria-label="شروع دوباره"><svg class="i" aria-hidden="true"><use href="#i-refresh"/></svg></button>
+    </div>
+    <p class="text-xs faint text-center mt-2">میان‌بر: فاصله (Space) شروع/توقف · R بازنشانی</p>
+  </section>
+
+  <section class="card mt-4" aria-labelledby="focus-task-h">
+    <h2 id="focus-task-h" class="card-title">روی چه کاری تمرکز می‌کنی؟</h2>
+    {% if tasks %}
+      <label for="focus-task" class="sr-only">تسک امروز</label>
+      <select id="focus-task" class="field mt-2" data-focus-task>
+        <option value="">بدون تسک مشخص</option>
+        {% for task in tasks %}
+          <option value="{{ task.id }}" data-done-url="{% url 'tasks:set_status' task.id 'done' %}"{% if task.id == selected_id %} selected{% endif %}>{{ task.title }}</option>
+        {% endfor %}
+      </select>
+      <button type="button" class="btn btn-ghost btn-sm mt-3" data-focus-done hidden><svg class="i i-sm" aria-hidden="true"><use href="#i-check-circle"/></svg>این تسک انجام شد</button>
+    {% else %}
+      <div class="empty" style="padding:1rem 0 0">
+        {% include "includes/illus.html" with kind="done" %}
+        <h3>تسک بازی برای امروز نداری</h3>
+        <p>می‌توانی بدون تسک هم تایمر را بزنی، یا اول یک تسک اضافه کنی.</p>
+        <a href="{% url 'core:home' %}" class="btn btn-primary btn-sm">رفتن به امروز</a>
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="card mt-4" aria-labelledby="focus-today-h">
+    <div class="row between">
+      <h2 id="focus-today-h" class="card-title">جلسه‌های تمرکز امروز</h2>
+      <strong data-focus-count data-initial="{{ focus.today_sessions }}">{{ focus.today_sessions|fa }}</strong>
+    </div>
+    <div class="focus-dots mt-2" data-focus-dots aria-hidden="true"></div>
+    <div class="stat-grid focus-stats mt-3">
+      <div class="stat-mini"><span class="muted text-xs">امروز</span><b data-focus-today-min>{{ focus.today_minutes|duration }}</b></div>
+      <div class="stat-mini"><span class="muted text-xs">۷ روز اخیر</span><b data-focus-week-min>{{ focus.week_minutes|duration }}</b></div>
+    </div>
+    <p class="text-xs faint mt-2">جلسه‌های کامل‌شده در حسابت ذخیره می‌شوند و در آمار هم دیده می‌شوند.</p>
+  </section>
+
+  {% if focus.has_data %}
+    <section class="card mt-4" aria-labelledby="focus-week-h">
+      <h2 id="focus-week-h" class="card-title">تمرکز در ۷ روز اخیر</h2>
+      <div class="bars" role="img" aria-label="نمودار ستونی دقیقه‌های تمرکز در هفت روز اخیر">
+        {% for d in focus.series %}
+          <div class="bar-col">
+            <div class="bar-track"><div class="bar-fill{% if d.minutes == 0 %} is-empty{% endif %}" style="height: {% if d.minutes == 0 %}4{% else %}{{ d.percent }}{% endif %}%; animation-delay: {{ forloop.counter0 }}00ms"></div></div>
+            <span class="bar-label">{{ d.minutes|fa }}</span>
+            <span class="bar-val">{{ d.label }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+{% endblock %}
+
+{% block scripts %}<script src="{% static 'js/focus.js' %}" defer></script>{% endblock %}

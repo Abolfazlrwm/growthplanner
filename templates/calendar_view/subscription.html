@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}{% if ui_lang == "en" %}Calendar subscription{% else %}اشتراک تقویم{% endif %}{% endblock %}
+
+{% block content %}
+  <div class="auth" style="max-width:44rem">
+    <section class="card" aria-labelledby="subscription-heading">
+      {% if ui_lang == "en" %}
+        <h1 id="subscription-heading" style="font-size:1.35rem">Calendar subscription</h1>
+        <p class="text-sm muted">Keep your tasks in a calendar app that supports an iCalendar subscription.</p>
+      {% else %}
+        <h1 id="subscription-heading" style="font-size:1.35rem">اشتراک تقویم</h1>
+        <p class="text-sm muted">تسک‌هایت را در برنامه‌ای که اشتراک iCalendar را پشتیبانی می‌کند دنبال کن.</p>
+      {% endif %}
+    </section>
+
+    <section class="card mt-4" aria-labelledby="link-heading">
+      {% if subscription.is_active %}
+        {% if ui_lang == "en" %}
+          <h2 id="link-heading" class="card-title">Your private feed link</h2>
+          <p class="text-sm muted">This link includes up to {{ feed_max_events }} events from the previous {{ feed_past_days }} days through the next {{ feed_future_days }} days.</p>
+        {% else %}
+          <h2 id="link-heading" class="card-title">پیوند خصوصی تقویم شما</h2>
+          <p class="text-sm muted">این پیوند حداکثر {{ feed_max_events }} رویداد از {{ feed_past_days }} روز گذشته تا {{ feed_future_days }} روز آینده را دارد.</p>
+        {% endif %}
+
+        <label class="text-sm bold" for="calendar-feed-url">{% if ui_lang == "en" %}Subscription URL{% else %}نشانی اشتراک{% endif %}</label>
+        <div class="row mt-2" style="align-items:stretch;gap:.5rem">
+          <input id="calendar-feed-url" class="field grow ltr" type="text" value="" data-feed-path="{{ feed_path }}" readonly aria-describedby="link-warning">
+          <button id="copy-calendar-feed" type="button" class="btn btn-ghost btn-sm">{% if ui_lang == "en" %}Copy{% else %}کپی{% endif %}</button>
+        </div>
+        <div class="row mt-3" style="gap:.5rem;flex-wrap:wrap">
+          <a id="webcal-calendar-feed" class="btn btn-primary btn-sm" href="#">{% if ui_lang == "en" %}Open in calendar app{% else %}باز کردن در برنامهٔ تقویم{% endif %}</a>
+        </div>
+        <p id="copy-calendar-status" class="text-xs faint mt-2" role="status" aria-live="polite"></p>
+        <p id="link-warning" class="text-sm mt-3" style="color:var(--danger)">
+          {% if ui_lang == "en" %}<strong>Keep this link private.</strong> Anyone who has it can read your task titles.{% else %}<strong>این پیوند را خصوصی نگه دارید.</strong> هرکس آن را داشته باشد می‌تواند عنوان تسک‌های شما را بخواند.{% endif %}
+        </p>
+      {% else %}
+        {% if ui_lang == "en" %}
+          <h2 id="link-heading" class="card-title">The feed is revoked</h2>
+          <p class="text-sm muted">No subscription URL is currently active. Create a fresh link to subscribe again.</p>
+        {% else %}
+          <h2 id="link-heading" class="card-title">اشتراک باطل شده است</h2>
+          <p class="text-sm muted">در حال حاضر هیچ پیوند اشتراک فعالی وجود ندارد. برای اشتراک دوباره یک پیوند تازه بسازید.</p>
+        {% endif %}
+      {% endif %}
+    </section>
+
+    <section class="card mt-4" aria-labelledby="manage-heading">
+      {% if ui_lang == "en" %}
+        <h2 id="manage-heading" class="card-title">Manage link</h2>
+        <p class="text-sm muted">It expires on {{ subscription.expires_at|date:"Y-m-d H:i" }}. Rotating immediately invalidates the current URL.</p>
+      {% else %}
+        <h2 id="manage-heading" class="card-title">مدیریت پیوند</h2>
+        <p class="text-sm muted">این پیوند در {{ subscription.expires_at|date:"Y/m/d H:i" }} منقضی می‌شود. ساختن پیوند تازه، نشانی فعلی را همان لحظه باطل می‌کند.</p>
+      {% endif %}
+      <div class="row mt-3" style="gap:.6rem;flex-wrap:wrap">
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="rotate">
+          <button class="btn btn-ghost btn-sm" type="submit">{% if subscription.is_active %}{% if ui_lang == "en" %}Rotate link{% else %}ساختن پیوند تازه{% endif %}{% else %}{% if ui_lang == "en" %}Create fresh link{% else %}ساختن پیوند تازه{% endif %}{% endif %}</button>
+        </form>
+        {% if subscription.is_active %}
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="revoke">
+            <button class="btn btn-ghost btn-sm" style="color:var(--danger);border-color:var(--danger)" type="submit">{% if ui_lang == "en" %}Revoke link{% else %}باطل کردن پیوند{% endif %}</button>
+          </form>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  {% if subscription.is_active %}
+  <script>
+    (function () {
+      var input = document.getElementById("calendar-feed-url");
+      var path = input.dataset.feedPath;
+      var copy = document.getElementById("copy-calendar-feed");
+      var open = document.getElementById("webcal-calendar-feed");
+      var status = document.getElementById("copy-calendar-status");
+      // Deliberately use the browser's visible origin, never an internal reverse-proxy host.
+      var url = window.location.origin + path;
+      var webcal = "webcal://" + window.location.host + path;
+      input.value = url;
+      open.href = webcal;
+      copy.addEventListener("click", function () {
+        function done() {
+          status.textContent = {% if ui_lang == "en" %}"Copied."{% else %}"کپی شد."{% endif %};
+        }
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(done).catch(function () {
+            input.focus(); input.select(); document.execCommand("copy"); done();
+          });
+        } else {
+          input.focus(); input.select(); document.execCommand("copy"); done();
+        }
+      });
+    }());
+  </script>
+  {% endif %}
+{% endblock %}

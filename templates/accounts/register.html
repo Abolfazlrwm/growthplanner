@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}ثبت‌نام{% endblock %}
+
+{% block content %}
+  <div class="auth">
+    <div class="auth-head">
+      <svg class="mark i" aria-hidden="true" style="width:3.4rem;height:3.4rem"><use href="#i-logo"/></svg>
+      <h1>ساخت حساب جدید</h1>
+      <p class="page-sub">فقط یک نام کاربری و رمز عبور؛ همین.</p>
+    </div>
+    <div class="card auth-card">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% include "includes/form_fields.html" %}
+        <button type="submit" class="btn btn-primary btn-block btn-lg">ثبت‌نام و شروع</button>
+      </form>
+    </div>
+    <p class="auth-foot">قبلاً ثبت‌نام کرده‌ای؟ <a href="{% url 'accounts:login' %}">ورود</a></p>
+  </div>
+{% endblock %}

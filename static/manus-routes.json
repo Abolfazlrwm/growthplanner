@@ -1,0 +1,156 @@
+{
+  "routes": [
+    {
+      "path": "/accounts/register/",
+      "title": "accounts:register"
+    },
+    {
+      "path": "/accounts/login/",
+      "title": "accounts:login"
+    },
+    {
+      "path": "/accounts/password-reset/",
+      "title": "accounts:password_reset"
+    },
+    {
+      "path": "/accounts/password-reset/done/",
+      "title": "accounts:password_reset_done"
+    },
+    {
+      "path": "/accounts/reset/:uidb64/:token/",
+      "title": "accounts:password_reset_confirm"
+    },
+    {
+      "path": "/accounts/reset/done/",
+      "title": "accounts:password_reset_complete"
+    },
+    {
+      "path": "/accounts/password-change/",
+      "title": "accounts:password_change"
+    },
+    {
+      "path": "/accounts/password-change/done/",
+      "title": "accounts:password_change_done"
+    },
+    {
+      "path": "/accounts/settings/",
+      "title": "accounts:settings"
+    },
+    {
+      "path": "/accounts/delete/",
+      "title": "accounts:delete"
+    },
+    {
+      "path": "/goals/",
+      "title": "goals:list"
+    },
+    {
+      "path": "/goals/new/",
+      "title": "goals:create"
+    },
+    {
+      "path": "/goals/:pk/",
+      "title": "goals:detail"
+    },
+    {
+      "path": "/goals/:pk/edit/",
+      "title": "goals:edit"
+    },
+    {
+      "path": "/goals/:pk/delete/",
+      "title": "goals:delete"
+    },
+    {
+      "path": "/tasks/",
+      "title": "tasks:list"
+    },
+    {
+      "path": "/tasks/smart/",
+      "title": "tasks:smart_add"
+    },
+    {
+      "path": "/tasks/board/",
+      "title": "tasks:board"
+    },
+    {
+      "path": "/tasks/search/",
+      "title": "tasks:search"
+    },
+    {
+      "path": "/tasks/:pk/",
+      "title": "tasks:detail"
+    },
+    {
+      "path": "/habits/",
+      "title": "habits:list"
+    },
+    {
+      "path": "/habits/new/",
+      "title": "habits:create"
+    },
+    {
+      "path": "/habits/:pk/",
+      "title": "habits:detail"
+    },
+    {
+      "path": "/habits/:pk/edit/",
+      "title": "habits:edit"
+    },
+    {
+      "path": "/habits/:pk/delete/",
+      "title": "habits:delete"
+    },
+    {
+      "path": "/journal/",
+      "title": "journal:list"
+    },
+    {
+      "path": "/calendar/subscription/",
+      "title": "calendar_view:subscription"
+    },
+    {
+      "path": "/calendar/",
+      "title": "calendar_view:month"
+    },
+    {
+      "path": "/calendar/:year/:month/",
+      "title": "calendar_view:month"
+    },
+    {
+      "path": "/calendar/week/",
+      "title": "calendar_view:week"
+    },
+    {
+      "path": "/calendar/week/:date/",
+      "title": "calendar_view:week"
+    },
+    {
+      "path": "/calendar/timeline/",
+      "title": "calendar_view:timeline"
+    },
+    {
+      "path": "/calendar/timeline/:date/",
+      "title": "calendar_view:timeline"
+    },
+    {
+      "path": "/assistant/",
+      "title": "assistant:index"
+    },
+    {
+      "path": "/",
+      "title": "core:home"
+    },
+    {
+      "path": "/stats/",
+      "title": "core:stats"
+    },
+    {
+      "path": "/focus/",
+      "title": "core:focus"
+    },
+    {
+      "path": "/offline/",
+      "title": "core:offline"
+    }
+  ]
+}

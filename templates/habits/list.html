@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load jalali_tags %}
+
+{% block title %}عادت‌ها{% endblock %}
+
+{% block content %}
+  <div class="page-head">
+    <div>
+      <h1><svg class="i i-lg" aria-hidden="true" style="color:var(--primary)"><use href="#i-habits"/></svg>عادت‌ها</h1>
+      <p class="page-sub">یک‌بار تعریف کن؛ هر روز (یا روزهایی که مشخص کردی) خودش تسک می‌سازد.</p>
+    </div>
+    <a href="{% url 'habits:create' %}" class="btn btn-primary"><svg class="i" aria-hidden="true"><use href="#i-plus"/></svg>عادت جدید</a>
+  </div>
+
+  <ul>
+    {% for habit in habits %}
+      <li class="card item-card{% if not habit.active %} dim{% endif %}">
+        <div class="item-head">
+          <a class="item-title item-link" href="{% url 'habits:detail' habit.pk %}">{{ habit.title }}</a>
+          {% if not habit.active %}<span class="chip">غیرفعال</span>{% endif %}
+        </div>
+        <p class="text-sm muted mt-1">{% if habit.weekday_list %}{{ habit.weekday_labels|join:"، " }}{% else %}هر روز{% endif %}{% if habit.goal %} · {{ habit.goal.title }}{% endif %}</p>
+        {% if habit.active and habit.streak > 0 %}
+          <div class="row row-wrap mt-2" style="gap:.4rem">
+            <span class="chip streak"><svg class="i" aria-hidden="true"><use href="#i-flame"/></svg>{{ habit.streak|fa }} روز پشت‌سرهم</span>
+            {% if habit.best_streak > habit.streak %}<span class="chip"><svg class="i" aria-hidden="true"><use href="#i-trophy"/></svg>رکورد: {{ habit.best_streak|fa }}</span>{% endif %}
+          </div>
+        {% elif habit.best_streak > 0 %}
+          <div class="mt-2"><span class="chip"><svg class="i" aria-hidden="true"><use href="#i-trophy"/></svg>بهترین رکورد: {{ habit.best_streak|fa }} روز</span></div>
+        {% endif %}
+        <div class="item-foot">
+          <form method="post" action="{% url 'habits:toggle' habit.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-ghost btn-sm">{% if habit.active %}غیرفعال کن{% else %}فعال کن{% endif %}</button>
+          </form>
+          <span class="item-actions">
+            <a class="icon-btn" href="{% url 'habits:edit' habit.pk %}" aria-label="ویرایش «{{ habit.title }}»" title="ویرایش"><svg class="i" aria-hidden="true"><use href="#i-edit"/></svg></a>
+            <a class="icon-btn danger" href="{% url 'habits:delete' habit.pk %}" aria-label="حذف «{{ habit.title }}»" title="حذف"><svg class="i" aria-hidden="true"><use href="#i-trash"/></svg></a>
+          </span>
+        </div>
+      </li>
+    {% empty %}
+      <li class="empty empty-card">
+        {% include "includes/illus.html" with kind="habits" %}
+        <h3>هنوز عادتی نساخته‌ای</h3>
+        <p>مثلاً «ورزش صبحگاهی» یا «مطالعه‌ی شبانه» را یک‌بار تعریف کن تا خودش هر روز برایت تسک بسازد.</p>
+        <a href="{% url 'habits:create' %}" class="btn btn-primary">ساخت اولین عادت</a>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

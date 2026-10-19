@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load jalali_tags %}
+
+{% block title %}برنامه‌ی هفتگی{% endblock %}
+{% block main_class %}container-wide week-page{% endblock %}
+
+{% block content %}
+  <div class="page-head">
+    <div>
+      <h1><svg class="i i-lg" aria-hidden="true" style="color:var(--primary)"><use href="#i-week"/></svg>برنامه‌ی هفتگی</h1>
+      <p class="page-sub">{{ week_range }} · <span data-week-summary>{{ week_done|fa }} از {{ week_total|fa }} تسک انجام شده</span></p>
+    </div>
+    <nav class="row row-wrap" style="gap:.4rem" aria-label="جابه‌جایی بین هفته‌ها">
+      <a class="btn btn-ghost btn-sm" href="{% url 'calendar_view:week' prev_week|date:'Y-m-d' %}"><svg class="i i-sm" aria-hidden="true"><use href="#i-chevron-right"/></svg>هفته‌ی قبل</a>
+      {% if not is_current_week %}<a class="btn btn-sm" style="--_bg:var(--primary-soft);--_fg:var(--primary-text);--_hv:var(--line)" href="{% url 'calendar_view:week' %}">این هفته</a>{% endif %}
+      <a class="btn btn-ghost btn-sm" href="{% url 'calendar_view:week' next_week|date:'Y-m-d' %}">هفته‌ی بعد<svg class="i i-sm" aria-hidden="true"><use href="#i-chevron-left"/></svg></a>
+    </nav>
+  </div>
+
+  <p class="text-sm muted mb-3 week-hint"><svg class="i i-sm" aria-hidden="true"><use href="#i-grip"/></svg>تسک را بگیر و روی روز دیگر رها کن؛ یا دکمه‌ی «تغییر روز» (تقویم با فلش) را بزن. تسک‌های عادت و انجام‌شده جابه‌جا نمی‌شوند.</p>
+
+  <div class="week" data-week>
+    {% for day in days %}
+      <section class="wday{% if day.is_today %} is-today{% endif %}{% if day.is_friday %} is-friday{% endif %}" aria-labelledby="wd-{{ forloop.counter }}" style="--i:{{ forloop.counter0 }}">
+        <header class="wday-head">
+          <div>
+            <h2 id="wd-{{ forloop.counter }}">{{ day.weekday }}{% if day.is_today %} <span class="chip chip-primary">امروز</span>{% endif %}</h2>
+            <a class="wday-date" href="{% url 'tasks:list' %}?date={{ day.date|date:'Y-m-d' }}">{{ day.label }}</a>
+          </div>
+          <span class="chip" data-wcount>{{ day.done|fa }}/{{ day.total|fa }}</span>
+        </header>
+        <div class="progress" aria-hidden="true"><span style="--w: {{ day.percent }}%"></span></div>
+
+        <ul id="wl-{{ forloop.counter }}" class="task-list wlist" data-task-list data-date="{{ day.date|date:'Y-m-d' }}">
+          {% for task in day.tasks %}{% include "tasks/_task_row.html" %}{% endfor %}
+          <li class="wempty" aria-hidden="true">روز آزاد؛ تسکی را اینجا رها کن</li>
+        </ul>
+
+        <form class="wadd" hx-post="{% url 'tasks:create' %}" hx-target="#wl-{{ forloop.counter }}" hx-swap="beforeend"
+              hx-on::after-request="if(event.detail.successful){this.reset();}">
+          {% csrf_token %}
+          <input type="hidden" name="date" value="{{ day.date|date:'Y-m-d' }}">
+          <input type="hidden" name="priority" value="medium">
+          <label for="wt-{{ forloop.counter }}" class="sr-only">تسک جدید برای {{ day.weekday }} {{ day.label }}</label>
+          <input type="text" id="wt-{{ forloop.counter }}" name="title" class="field" maxlength="200" placeholder="+ تسک جدید" required>
+        </form>
+      </section>
+    {% endfor %}
+  </div>
+{% endblock %}

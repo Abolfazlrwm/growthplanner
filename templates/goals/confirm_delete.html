@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}حذف هدف{% endblock %}
+
+{% block content %}
+  <div class="auth">
+    <div class="card auth-card text-center">
+      <div class="status-icon danger"><svg class="i" aria-hidden="true"><use href="#i-trash"/></svg></div>
+      <h1 style="font-size:1.2rem">حذف «{{ object.title }}»؟</h1>
+      <p class="muted mt-2 text-sm">تسک‌های وابسته حذف نمی‌شوند؛ فقط از این هدف جدا می‌شوند.</p>
+      <form method="post" class="row mt-4" style="gap:.6rem">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger grow">بله، حذف شود</button>
+        <a href="{% url 'goals:list' %}" class="btn btn-ghost grow">انصراف</a>
+      </form>
+    </div>
+  </div>
+{% endblock %}

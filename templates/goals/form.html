@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}ویرایش هدف{% else %}هدف جدید{% endif %}{% endblock %}
+
+{% block content %}
+  <div class="auth" style="max-width:32rem">
+    <div class="card auth-card">
+      <h1 class="mb-4">{% if object %}ویرایش هدف{% else %}هدف جدید{% endif %}</h1>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% include "includes/form_fields.html" %}
+        <div class="row" style="gap:.6rem">
+          <button type="submit" class="btn btn-primary grow">ذخیره</button>
+          <a href="{% url 'goals:list' %}" class="btn btn-ghost">انصراف</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{
+  "venvPath": ".",
+  "venv": ".venv",
+  "include": ["apps", "config", "utils"],
+  "exclude": [".venv", "staticfiles"],
+  "typeCheckingMode": "basic",
+  "reportAttributeAccessIssue": false,
+  "reportArgumentType": false,
+  "reportCallIssue": false,
+  "reportOptionalMemberAccess": false,
+  "reportAssignmentType": false
+}

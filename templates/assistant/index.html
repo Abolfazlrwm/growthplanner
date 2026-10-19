@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{% if ui_lang == "en" %}Planning assistant{% else %}دستیار برنامه‌ریزی{% endif %}{% endblock %}
+{% block head_extra %}<link rel="stylesheet" href="{% static 'css/assistant.css' %}">{% endblock %}
+{% block main_class %}assistant-shell{% endblock %}
+{% block content %}
+<section class="assistant-page" aria-labelledby="assistant-title" data-assistant
+         data-chat-url="{% url 'assistant:chat' %}"
+         data-accept-url="{% url 'assistant:accept' %}"
+         data-clear-url="{% url 'assistant:clear' %}"
+         data-conversation-id="{% if conversation %}{{ conversation.token }}{% endif %}"
+         data-lang="{{ ui_lang|default:'fa' }}">
+  <header class="assistant-hero">
+    <div class="assistant-orb" aria-hidden="true">✦</div>
+    <div>
+      <p class="eyebrow">{% if ui_lang == "en" %}PRIVATE PLANNING SPACE{% else %}فضای خصوصی برنامه‌ریزی{% endif %}</p>
+      <h1 id="assistant-title">{% if ui_lang == "en" %}Turn intentions into a calm next step.{% else %}فکرهایت را به قدمِ بعدیِ آرام تبدیل کن.{% endif %}</h1>
+      <p>{% if ui_lang == "en" %}Ask for a plan, priorities, or a weekly review. Suggestions never create a task until you confirm them.{% else %}برای برنامه، اولویت‌بندی یا مرور هفتگی بپرس. هیچ پیشنهادی تا تأیید شما به تسک تبدیل نمی‌شود.{% endif %}</p>
+    </div>
+    <button type="button" class="assistant-clear" data-assistant-clear {% if not conversation %}disabled{% endif %}>
+      {% if ui_lang == "en" %}Clear history{% else %}پاک کردن گفت‌وگو{% endif %}
+    </button>
+  </header>
+
+  <div class="assistant-privacy" role="note">
+    <span aria-hidden="true">◌</span>
+    <p>{% if ui_lang == "en" %}<strong>You choose what is shared.</strong> Your notes/journal are never sent. Turn on the checkbox only if you want your own task and goal metadata considered.{% else %}<strong>شما انتخاب می‌کنید چه چیزی به اشتراک گذاشته شود.</strong> یادداشت‌ها و دفترچه‌تان هرگز ارسال نمی‌شوند. فقط با فعال‌کردن گزینه، اطلاعات تسک‌ها و هدف‌های خودتان برای برنامه‌ریزی استفاده می‌شود.{% endif %}</p>
+  </div>
+
+  <div id="assistant-chat" class="assistant-chat" aria-live="polite" aria-relevant="additions text">
+    {% if messages %}
+      {% for message in messages %}
+        <article class="assistant-bubble assistant-bubble--{{ message.role }}">
+          <span class="assistant-bubble-label">{% if message.role == "user" %}{% if ui_lang == "en" %}You{% else %}شما{% endif %}{% else %}{% if ui_lang == "en" %}Planner{% else %}برنامه‌یار{% endif %}{% endif %}</span>
+          <p>{{ message.content }}</p>
+        </article>
+      {% endfor %}
+    {% else %}
+      <div class="assistant-welcome" data-assistant-welcome>
+        <span aria-hidden="true">✦</span>
+        <p>{% if ui_lang == "en" %}What would make this week feel more manageable?{% else %}چه چیزی این هفته را برایت قابل‌مدیریت‌تر می‌کند؟{% endif %}</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <form class="assistant-composer" data-assistant-form novalidate>
+    {% csrf_token %}
+    <div class="assistant-mode-row" role="group" aria-label="{% if ui_lang == 'en' %}Assistant mode{% else %}حالت دستیار{% endif %}">
+      <label>{% if ui_lang == "en" %}Mode{% else %}حالت{% endif %}
+        <select name="mode" data-assistant-mode>
+          <option value="plan">{% if ui_lang == "en" %}Make a plan{% else %}ساختن برنامه{% endif %}</option>
+          <option value="prioritize">{% if ui_lang == "en" %}Prioritize{% else %}اولویت‌بندی{% endif %}</option>
+          <option value="weekly_review">{% if ui_lang == "en" %}Weekly review{% else %}مرور هفتگی{% endif %}</option>
+          <option value="general">{% if ui_lang == "en" %}Think it through{% else %}فکر کردن باهم{% endif %}</option>
+        </select>
+      </label>
+      <label class="assistant-consent">
+        <input type="checkbox" name="share_metadata" data-assistant-consent>
+        <span>{% if ui_lang == "en" %}Use my task &amp; goal metadata{% else %}استفاده از اطلاعات تسک‌ها و هدف‌هایم{% endif %}</span>
+      </label>
+    </div>
+    <label class="sr-only" for="assistant-message">{% if ui_lang == "en" %}Message{% else %}پیام{% endif %}</label>
+    <div class="assistant-input-wrap">
+      <textarea id="assistant-message" name="message" rows="3" maxlength="4000" required
+                placeholder="{% if ui_lang == 'en' %}For example: I need a realistic plan for my exam goal this week…{% else %}مثلاً: برای هدف آزمونم در این هفته یک برنامه‌ی واقع‌بینانه می‌خواهم…{% endif %}"
+                data-assistant-message></textarea>
+      <button class="assistant-send" type="submit" data-assistant-submit>
+        <span data-submit-label>{% if ui_lang == "en" %}Ask{% else %}بپرس{% endif %}</span>
+        <span class="assistant-spinner" hidden aria-hidden="true"></span>
+      </button>
+    </div>
+    <p class="assistant-status" data-assistant-status role="status"></p>
+  </form>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/assistant.js' %}" defer></script>{% endblock %}

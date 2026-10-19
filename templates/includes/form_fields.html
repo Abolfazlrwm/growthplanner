@@ -1,0 +1,28 @@
+{% for error in form.non_field_errors %}
+  <p class="alert alert-error mb-4" role="alert"><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg><span>{{ error }}</span></p>
+{% endfor %}
+{% for field in form.visible_fields %}
+  <div class="form-row">
+    {% if field.widget_type == "checkbox" %}
+      <div class="switch-row">{{ field }}<label for="{{ field.id_for_label }}" class="field-label" style="margin:0">{{ field.label }}</label></div>
+    {% elif field.widget_type == "checkboxselectmultiple" %}
+      <fieldset style="border:0;padding:0;margin:0">
+        <legend class="field-label">{{ field.label }}</legend>
+        <div class="check-group">
+          {% for choice in field %}
+            <div class="check-pill">{{ choice.tag }}<label for="{{ choice.id_for_label }}">{{ choice.choice_label }}</label></div>
+          {% endfor %}
+        </div>
+      </fieldset>
+    {% else %}
+      <label for="{{ field.id_for_label }}" class="field-label">{{ field.label }}</label>
+      {{ field }}
+    {% endif %}
+    {% for error in field.errors %}
+      <p class="field-error" role="alert"><svg class="i i-sm" aria-hidden="true" style="margin-top:.25rem"><use href="#i-alert"/></svg>{{ error }}</p>
+    {% endfor %}
+    {% if field.help_text %}
+      <div class="field-help">{{ field.help_text|safe }}</div>
+    {% endif %}
+  </div>
+{% endfor %}

@@ -1,0 +1,21 @@
+<aside class="workspace-rail" aria-label="{% if ui_lang == 'en' %}Workspace navigation{% else %}منوی فضای کار{% endif %}">
+  <a class="rail-brand" href="{% url 'core:home' %}"><svg class="i" aria-hidden="true"><use href="#i-logo"/></svg><span>GrowthPlanner<small>{% if ui_lang == 'en' %}MAKE ROOM TO GROW{% else %}فضایی برای رشد تو{% endif %}</small></span></a>
+  <div class="rail-workspace"><span class="avatar">{{ user.get_username|first|upper }}</span><span><b>{{ user.first_name|default:user.username }}</b><small>{% if ui_lang == 'en' %}Personal workspace{% else %}فضای شخصی من{% endif %}</small></span><span class="rail-dot"></span></div>
+  <div class="rail-label">{% if ui_lang == 'en' %}WORKSPACE{% else %}فضای کار{% endif %}</div>
+  <nav>
+    <a href="{% url 'core:home' %}"{% if vn == 'core:home' %} aria-current="page"{% endif %}><svg class="i"><use href="#i-today"/></svg>{% if ui_lang == 'en' %}Overview{% else %}نمای امروز{% endif %}</a>
+    <a href="{% url 'tasks:board' %}"{% if vn == 'tasks:board' or vn == 'tasks:detail' %} aria-current="page"{% endif %}><svg class="i"><use href="#i-tasks"/></svg>{% if ui_lang == 'en' %}My tasks{% else %}همهٔ تسک‌ها{% endif %}</a>
+    <a href="{% url 'goals:list' %}"{% if 'goals:' in vn %} aria-current="page"{% endif %}><svg class="i"><use href="#i-goals"/></svg>{% if ui_lang == 'en' %}Goals & milestones{% else %}اهداف و گام‌ها{% endif %}</a>
+    <a href="{% url 'habits:list' %}"{% if 'habits:' in vn %} aria-current="page"{% endif %}><svg class="i"><use href="#i-habits"/></svg>{% if ui_lang == 'en' %}Habits{% else %}عادت‌ها{% endif %}</a>
+    <a href="{% url 'calendar_view:week' %}"{% if 'calendar_view:' in vn %} aria-current="page"{% endif %}><svg class="i"><use href="#i-calendar"/></svg>{% if ui_lang == 'en' %}Calendar{% else %}تقویم و برنامه{% endif %}</a>
+    <a href="{% url 'core:focus' %}"{% if vn == 'core:focus' %} aria-current="page"{% endif %}><svg class="i"><use href="#i-timer"/></svg>{% if ui_lang == 'en' %}Focus room{% else %}اتاق تمرکز{% endif %}</a>
+    <a href="{% url 'journal:list' %}"{% if 'journal:' in vn %} aria-current="page"{% endif %}><svg class="i"><use href="#i-book"/></svg>{% if ui_lang == 'en' %}Journal{% else %}دفتر روزانه{% endif %}</a>
+    <a href="{% url 'core:stats' %}"{% if vn == 'core:stats' %} aria-current="page"{% endif %}><svg class="i"><use href="#i-chart"/></svg>{% if ui_lang == 'en' %}Insights{% else %}گزارش و بینش{% endif %}</a>
+  </nav>
+  <div class="rail-label">{% if ui_lang == 'en' %}A LITTLE SMARTER{% else %}یک قدم هوشمندتر{% endif %}</div>
+  <nav>
+    <a href="{% url 'tasks:smart_add' %}"{% if vn == 'tasks:smart_add' %} aria-current="page"{% endif %}><svg class="i"><use href="#i-bolt"/></svg>{% if ui_lang == 'en' %}Natural quick add{% else %}افزودن با یک جمله{% endif %}<span class="rail-badge">{% if ui_lang == 'en' %}NEW{% else %}نو{% endif %}</span></a>
+    <a href="{% url 'assistant:index' %}" class="rail-ai"{% if 'assistant:' in vn %} aria-current="page"{% endif %}><svg class="i"><use href="#i-sparkle"/></svg>{% if ui_lang == 'en' %}AI companion{% else %}همراه هوشمند{% endif %}<span class="rail-badge">AI</span></a>
+  </nav>
+  <div class="rail-bottom"><p>{% if ui_lang == 'en' %}Small steps.<br>Meaningful progress.{% else %}قدم‌های کوچک.<br>پیشرفت‌های ماندگار.{% endif %}</p><a href="{% url 'accounts:settings' %}"><svg class="i"><use href="#i-user"/></svg>{% if ui_lang == 'en' %}Profile & settings{% else %}پروفایل و تنظیمات{% endif %}</a></div>
+</aside>
