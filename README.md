@@ -1,5 +1,7 @@
 # GrowthPlanner — یک فضای آرام برای رشد روزانه
 
+[![CI](https://img.shields.io/github/actions/workflow/status/Abolfazlrwm/growthplanner/ci.yml?branch=main&label=CI&labelColor=1a1b26)](https://github.com/Abolfazlrwm/growthplanner/actions) [![Live demo](https://img.shields.io/badge/Live_demo-Vercel-000000?style=flat&labelColor=1a1b26)](https://growthplanner-kappa.vercel.app) [![Django](https://img.shields.io/badge/Django-5-092E20?style=flat&logo=django&labelColor=1a1b26)](https://www.djangoproject.com) [![License: MIT](https://img.shields.io/badge/License-MIT-3fb950?style=flat&labelColor=1a1b26)](LICENSE)
+
 یک برنامهٔ وب فارسی/انگلیسی برای اتصال هدف‌های بزرگ به کارهای کوچک روزانه؛ ساخته‌شده بر پایهٔ پروژهٔ اصلی Django + DRF + HTMX. این ارتقا معماری موجود را حفظ می‌کند و یک فرانت‌اند جدا و غیرضروری به آن تحمیل نمی‌کند.
 
 ## امکانات این نسخه
