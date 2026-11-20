@@ -10,5 +10,12 @@ COPY templates ./templates
 COPY static ./static
 COPY manage.py entrypoint.sh ./
 RUN SECRET_KEY=build-only-not-used-at-runtime DEBUG=False DATABASE_URL=sqlite:////tmp/build.sqlite3 python manage.py collectstatic --noinput
+
+# Non-root runtime user (uid 1000 so bind mounts owned by the host's uid 1000
+# stay writable). gunicorn binds 3000 (unprivileged).
+RUN useradd --system --uid 1000 --create-home appuser \
+    && chown -R appuser:appuser /app
+USER appuser
+
 EXPOSE 3000
 CMD ["sh", "entrypoint.sh"]
