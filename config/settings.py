@@ -16,7 +16,11 @@ if not SECRET_KEY:
     raise RuntimeError("Set SECRET_KEY; see .env.example")
 DEBUG = env("DEBUG")
 MANAGED_HOSTING = bool(os.environ.get("MANUS_PROJECT_ID"))
-ALLOWED_HOSTS = env("ALLOWED_HOSTS", default=["*"] if MANAGED_HOSTING else ["localhost", "127.0.0.1", "testserver"])
+# On the managed platform the deployment host varies, but it always lives on
+# the platform's own serving domains; a bare "*" also admits arbitrary
+# Host headers. Set ALLOWED_HOSTS explicitly if the exact host is known.
+_MANAGED_HOST_DEFAULTS = [".manus.computer", ".manus.space", ".manus.im"]
+ALLOWED_HOSTS = env("ALLOWED_HOSTS", default=_MANAGED_HOST_DEFAULTS if MANAGED_HOSTING else ["localhost", "127.0.0.1", "testserver"])
 CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS", default=["https://*.manus.computer", "https://*.manus.space"] if MANAGED_HOSTING else [])
 PUBLIC_ORIGIN = env("PUBLIC_ORIGIN", default="").rstrip("/")
 FRAME_ANCESTORS = env.list("FRAME_ANCESTORS", default=["'self'", "https://manus.im", "https://www.manus.im"] if MANAGED_HOSTING else ["'self'"])
